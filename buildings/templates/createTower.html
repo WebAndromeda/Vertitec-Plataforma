@@ -1,0 +1,26 @@
+{% extends 'layouts/navbar.html' %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+
+    <div class="container-fluid container_content">
+        <div class="container_form">
+            <h1 class="titleText">{% if is_update %}Editar {% else %}Crear {%endif%} una torre</h1>
+            <form action="" method="post">
+                <div class="row">
+                    <div class="col-12">
+                    {% csrf_token %}
+                    <label for="" class="labelInputs">Edificio</label> <br>
+                    {{ forms.building }} <br> <br>
+                    <label for="" class="labelInputs">Nombre de la torre</label> <br>
+                    {{ forms.name }}   <br> <br> 
+
+                <button class="buttonSendForm" type="submit">{% if is_update %}Editar {% else %}Crear {%endif%}torre</button> <br><br>    
+            </form>
+        </div>
+    </div>
+    
+    <h1 class="infoTable mt-3" >En un futuro no debe permitir cambiar el edificio al que pertenece, imaginemos que ya hay agendamientos con esa torre, podria generar problemas</h1>
+</center>
+{% endblock %}

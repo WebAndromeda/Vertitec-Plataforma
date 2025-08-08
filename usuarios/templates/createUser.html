@@ -1,0 +1,41 @@
+{% extends 'layouts/navbar.html' %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+
+    <div class="container-fluid container_content">
+        <div class="container_form">
+            <h1 class="titleText">Formulario para {% if update %} editar{% else %}crear {%endif%} un usuario</h1>
+            <form action="" method="post">
+                <div class="row">
+                    <div class="col-6">
+                    {% csrf_token %}
+                    <label for="" class="labelInputs">Nombre de usuario</label> <br>
+                    {{ forms.username }}   <br> <br> <!-- Sin usar {{ form.username.label }} -->
+                    <label for="" class="labelInputs">Correo electronico</label> <br>
+                    {{ forms.email }} <br> <br>            
+                    <label for="" class="labelInputs">Contraseña {% if update %} (Opcional){%endif%}</label> <br>
+                    {{ forms.password1 }} <br> <br>
+
+                    {% if update %}
+                        <p class="labelInputs">Recuerda que no puedes cambiar el perfil de un usuario</p>
+                    {% else %}
+                        <label for="" class="labelInputs">Rol (Despues no podras cambiarlo)</label> <br>
+                        {{ forms.role }} <br> <br>
+                    {%endif%}
+                </div>
+                    <div class="col-6"> 
+                        <label for="" class="labelInputs">Nombre</label> <br>
+                        {{ forms.first_name }} <br> <br>
+                        <label for="" class="labelInputs">Apellido</label> <br>
+                        {{ forms.last_name }} <br> <br>    
+                        <label for="" class="labelInputs">Confirmacion de contraseña {% if update %} (Opcional){%endif%}</label> <br>
+                        {{ forms.password2 }} <br> <br>
+                    </div>
+                </div>  
+                <button class="buttonSendForm" type="submit">{% if update %}Editar {% else %}Crear {%endif%}usuario</button> <br><br>    
+            </form>
+        </div>
+    </div>
+{% endblock %}

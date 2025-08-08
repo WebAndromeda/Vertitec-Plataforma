@@ -1,0 +1,99 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-12">
+            <h1 class="titleText">{% if update %}Editar agendamiento{% else %}Crear nuevos agendamientos{%endif%}</h1>
+        </div>
+    </div>
+    
+
+    <!-- Titulos de la tabla -->
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-1">
+                <p class="titlesTable">Letra inicial</p>
+            </div>
+            <div class="col-3">
+                <p class="titlesTable">Edificio</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Torre</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Técnico</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Fecha</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Hora</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Estado</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Enviar</p>
+            </div>
+        </div>
+    
+
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row containerInfoTable">
+                <div class="col-1 divData">
+                    <p class="infoTable">Proximamente</p>
+                </div>
+                <div class="col-3 divData">
+                    <!-- Edificio -->
+                    {{ forms.client }} 
+                    {{ forms.date.errors }}<br><br>
+
+                </div>
+                <div class="col-2 divData">
+                    <!-- Torre -->
+                    {{ forms.tower }}
+                    {{ forms.tower.errors }}<br><br>
+                </div>
+                <div class="col-2 divData">
+                    <!-- Técnico -->
+                    {{ forms.technician }}
+                    {{ forms.technician.errors }}<br><br>
+                </div>
+                <div class="col-1 divData">
+                    <!-- Fecha -->
+                    {{ forms.date }} 
+                    {{ forms.date.errors }}<br><br>
+                </div>
+                <div class="col-1 divData">
+                    <!-- Hora -->
+                    {{ forms.hour }}
+                    {{ forms.hour.errors }}<br><br>
+                </div>
+                <div class="col-1">
+                    <!-- Estado -->
+                    {{ forms.status }}
+                    {{ forms.status.errors }}<br><br>
+                </div>
+                <div class="col-1">
+                    <button class="buttonSendForm" type="submit">
+                    {% if update %}Editar{% else %}Crear{% endif %} agendamiento
+                    </button><br><br>
+                </div>
+            </div>
+        </form>
+
+        <p class="nota">NOTA: Se puede usar Formsets de Django para esto</p>
+        <p class="nota">NOTA: Mas adelante se debe cambiar esto para usar o AJAX o JS para mostrar en este campo solo las Torres que pertenecen al edificio seleccionado</p>
+        <style>
+            .nota{
+                color: white;
+            }
+        </style>
+
+    </div>
+</center>
+{% endblock %}

@@ -1,0 +1,12 @@
+/* Variables */
+:root {
+    /* Tipografias */
+    --font800: 'AvenirLTStd-Black', sans-serif;
+    --font600: 'AvenirLTStd-Book', sans-serif;
+    --font400: 'AvenirLTStd-Roman', sans-serif;
+    /* Colores version oscura */
+    --darkcolor1: #111c28; 
+    --darkcolor2: #0b141b; 
+    --darkcolor3: #18222d; 
+    --darkcolor4: white;     
+}

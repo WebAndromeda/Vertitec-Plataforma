@@ -1,0 +1,122 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-4">
+            <h1 class="titleText">Agendamientos individuales</h1>
+        </div>
+        <div class="col-8">
+            <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
+                <button class="botonCrear">
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevos agendamientos
+                </button> 
+            </a> <br> <br>
+            <a href=""> <!-- Crear agendamientos -->
+                <button class="botonCrear">
+                    <i class="fa-solid fa-plus"></i>
+                    Agendamientos mensuales
+                </button> 
+            </a> <br> <br>
+            <form action="">
+                <input type="date" class="inputFilter">
+                <select name="" id="" class="inputFilter">
+                    <option value="">Desconocido</option>
+                    <option value="">Por realizar</option>
+                    <option value="">Realizado</option>
+                </select>
+                <select name="" id="" class="inputFilter">
+                    <option value="">Desconocido</option>
+                    <option value="">Pepito 1</option>
+                    <option value="">Pepito 2</option>
+                    <option value="">Pepito 3</option>
+                </select>
+                <input type="text" class="inputFilter" placeholder="Nombre del edificio">    
+                
+                <button type="submit" class="botonEditar">Buscar</button>
+            </form>
+        </div>
+    </div>
+    
+
+    <!-- Titulos de la tabla -->
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-1">
+                <p class="titlesTable">Fecha</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Hora</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Estado</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Técnico</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Edificio</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Dirección</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Torre</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Opciones</p>
+            </div>
+        </div>
+    
+
+    {% for individualSchedule in schedule %}
+        <div class="row containerInfoTable">
+            <div class="col-1 divData">
+                <p class="infoTable">{{ individualSchedule.date }}</p>
+            </div>
+            <div class="col-1 divData">
+                <p class="infoTable">{{ individualSchedule.hour }}</p>
+            </div>
+            <div class="col-1 divData">
+                <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+            </div>
+            <div class="col-2 divData">
+                <p class="infoTable">{{ individualSchedule.technician }}</p>
+            </div>
+            <div class="col-2 divData">
+                <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
+            </div>
+            <div class="col-2 divData">
+                <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
+            </div>
+            <div class="col-1 divData">
+                <p class="infoTable">{{ individualSchedule.tower.name }}</p>
+            </div>
+                
+            <div class="col-2">
+                <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Editar
+                    </button>
+                </a>
+                
+                <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
+                    <button class="botonEliminar">
+                        <i class="fa-solid fa-trash"></i>
+                        Eliminar
+                    </button>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+    <br> <br>
+    <h1 class="infoTable mt-3" >Proximamente se eliminara la columna de "Edificio" y "Dirección" para la vista de los Clientes</h1>
+    <h1 class="infoTable mt-3" >Proximamente se eliminara la columna de "Tecnico" para la vista de los Técnicos</h1>
+</center>
+{% endblock %}

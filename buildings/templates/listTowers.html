@@ -1,0 +1,62 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-6">
+            <h1 class="titleText">Torres de {{ towerList.0.building.user.first_name }}</h1>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'addTower' towerList.0.building.id %}"> <!-- Crear torre para este cliente -->
+                <button class="botonCrear">
+                    <i class="fa-solid fa-plus"></i>
+                    Nueva torre
+                </button> <br> <br>
+            </a>
+        </div>
+    </div>
+    
+
+    <!-- Titulos de la tabla -->
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-8">
+                <p class="titlesTable">Torres</p>
+            </div>
+            <div class="col-4">
+                <p class="titlesTable">Opciones</p>
+            </div>
+        </div>
+    
+
+    {% for tower in towerList %}
+        <div class="row containerInfoTable">
+            <!--Torres-->            
+            <div class="col-8 divData">
+                <p class="infoTable">
+                    {{ tower.name }}
+                </p>
+            </div>
+            <!--Opciones-->    
+            <div class="col-4">
+                <a href="{% url 'editTowers' %}?id={{ tower.id }}"> <!-- Editar Torre -->
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Editar
+                    </button>
+                </a>
+                
+                <a href="{% url 'deleteTower' %}?id={{ tower.id }}" onclick="return confirm('¿Estás seguro de eliminar esta torre?');">  <!-- Eliminar torre -->
+                    <button class="botonEliminar">
+                        <i class="fa-solid fa-trash"></i>
+                        Eliminar
+                    </button>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</center>
+{% endblock %}

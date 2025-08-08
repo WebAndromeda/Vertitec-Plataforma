@@ -1,0 +1,115 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-6">
+            <h1 class="titleText">Usuarios registrados</h1>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'createUser' %}"> <!-- Crear usuario -->
+                <button class="botonCrear">
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevo Usuario
+                </button> <br> <br>
+            </a>
+
+            <form action="">
+                <label for=""> 
+                    <input type="text" class="inputFilter" placeholder="Buscar por nombre...">    
+                </label>
+                <select name="" id="" class="inputFilter">
+                    <option value="">Desconocido</option>
+                    <option value="">Administrador</option>
+                    <option value="">Tecnico</option>
+                </select>
+                <button type="submit" class="botonEditar">Buscar</button>
+            </form>
+        </div>
+    </div>
+    
+
+
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-2">
+                <p class="titlesTable">Nombre de usuario</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Nombre</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Apellido</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Correo</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Rol</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Opciones</p>
+            </div>
+        </div>
+    
+
+    {% for user in usuarios %}
+        <div class="row containerInfoTable">
+            <div class="col-2 divData">
+                <p class="infoTable">{{ user.username }}</p>
+            </div>
+            <div class="col-2 divData">
+                {% if user.first_name %}
+                    <p class="infoTable">{{ user.first_name }}</p>
+                {% else %}
+                    <p class="infoTable">No registrado</p>
+                {% endif %}
+            </div>
+            <div class="col-2 divData">
+                {% if user.last_name %}
+                    <p class="infoTable">{{ user.last_name }}</p>
+                {% else %}
+                    <p class="infoTable">No registrado</p>
+                {% endif %}
+            </div>
+            <div class="col-2 divData">
+                {% if user.email %}
+                    <p class="infoTable">{{ user.email}}</p>
+                {% else %}
+                    <p class="infoTable">No registrado</p>
+                {% endif %}
+            </div>
+            <div class="col-2 divData">
+                {% if user.groups.first %}
+                    <p class="infoTable">{{ user.groups.first.name }}</p>
+                {% else %}
+                    <p class="infoTable">No asignado</p>
+                {% endif %}
+                
+            </div>
+            <div class="col-2">
+                <a href="{% url 'editUser' %}?id={{ user.id }}"> <!-- Editar usuario -->
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Editar
+                    </button>
+                </a>
+                
+                <a href="{% url 'deleteUser' %}?id={{ user.id }}" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
+                    <button class="botonEliminar">
+                        <i class="fa-solid fa-trash"></i>
+                        Eliminar
+                    </button>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</center>
+
+
+
+<img src="{% static 'AndromedaIMG.png' %}" alt="" width="150px ">
+{% endblock %}

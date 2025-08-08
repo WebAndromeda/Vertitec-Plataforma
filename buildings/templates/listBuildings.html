@@ -1,0 +1,108 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-6">
+            <h1 class="titleText">Edificios / Clientes</h1>
+        </div>
+        <div class="col-6">
+            <a href="{% url 'createBuilding' %}"> <!-- Crear usuario -->
+                <button class="botonCrear">
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevo edificio
+                </button> <br> <br>
+            </a>
+
+            <form action="">
+                <label for=""> 
+                    <input type="text" class="inputFilter" placeholder="Buscar por nombre...">    
+                </label>
+                <button type="submit" class="botonEditar">Buscar</button>
+            </form>
+        </div>
+    </div>
+    
+
+    <!-- Titulos de la tabla -->
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-2">
+                <p class="titlesTable">Nombre</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Correo</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Usuario</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Dirección</p>
+            </div>
+            <div class="col-3">
+                <p class="titlesTable">Torres</p>
+            </div>
+            <div class="col-3">
+                <p class="titlesTable">Opciones</p>
+            </div>
+        </div>
+    
+
+    {% for individualbuildingList in buildingList %}
+        <div class="row containerInfoTable">
+            <div class="col-2 divData">
+                <p class="infoTable">{{ individualbuildingList.user.first_name }}</p>
+            </div>
+            <div class="col-1 divData">
+                <p class="infoTable">{{ individualbuildingList.user.email }}</p>
+            </div>
+            <div class="col-1 divData">
+                <p class="infoTable">{{ individualbuildingList.user.username }}</p>
+            </div>
+            <div class="col-2 divData">
+                <p class="infoTable">{{ individualbuildingList.address }}</p>
+            </div>
+            <div class="col-3 divData">
+                <p class="infoTable">
+                    {% for torre in individualbuildingList.towers.all %}
+                        {{ torre.name }} <br>
+                    {% empty %}
+                        <p class="infoTable">Torre unica</p>
+                    {% endfor %}
+                </p>
+            </div>
+                
+            <div class="col-3">
+                <a href="{% url 'editBuilding' %}?id={{ individualbuildingList.user.id }}"> <!-- Editar cliente -->
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Editar
+                    </button>
+                </a>
+                
+                <a href="{% url 'listTowers' %}?id={{ individualbuildingList.id }}"> 
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Ver torres
+                    </button>
+                </a>
+                <a href="/"> <!-- Repuestos cliente -->
+                    <button class="botonExpediente">
+                        <i class="fa-regular fa-file"></i>
+                        Repuestos
+                    </button>
+                </a>                
+                <a href="{% url 'deleteBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('¿Estás seguro de eliminar este edificio / cliente?');"> <!-- Eliminar cliente -->
+                    <button class="botonEliminar">
+                        <i class="fa-solid fa-trash"></i>
+                        Eliminar
+                    </button>
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</center>
+{% endblock %}

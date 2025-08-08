@@ -1,0 +1,171 @@
+{% load static %}
+    
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Vertitec</title>
+    <link rel="icon" href="{% static '/css/Favicon.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static '/css/bootstrapTEST.min.css' %}">
+    <link rel="stylesheet" href="{% static '/css/main222.css' %}">
+    <!-- CDN Font-Awesome-Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+<div class="containerAll">
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
+      <div class="container-fluid">
+        <img src="{% static '/css/Logo Vertitec.png' %}" class="img-Navbar" alt="">
+        <a class="navbar-brand titleNavbar" href="#">Mi Plataforma</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+          data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item ">
+                
+                {% url 'index' as index_url %}
+                {% url 'login' as login_url%}
+                {% url 'userList' as profile_url%}
+                {% url 'listSchedule' as schedule_url%}
+                {% url 'listBuildings' as listBuildings_url%}
+
+                
+                <a class="nav-link textLink {% if request.path == index_url %}active{% endif %}" href="{% url 'index' %}">Inicio</a>
+            </li>
+            {% if not user.is_authenticated %}
+                <li class="nav-item">
+                  <a class="nav-link  textLink {% if request.path == login_url %}active{% endif %}" href="{% url 'login' %}">Iniciar sesión</a>
+                </li>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                {% if 'Administrador' in user_groups %}
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == profile_url %}active{% endif %}" href="{% url 'userList' %}">Usuarios</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == listBuildings_url %}active{% endif %}" href="{% url 'listBuildings' %}">Edificios</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == schedule_url %}active{% endif %}" href="{% url 'listSchedule' %}">Agendamiento</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
+                  </li>
+                {% endif %}
+                {% if 'Técnico' in user_groups %}
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == schedule_url %}active{% endif %}" href="{% url 'listSchedule' %}">Agendamiento</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
+                  </li>
+                {% endif %}
+                {% if 'Cliente' in user_groups %}
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == schedule_url %}active{% endif %}" href="{% url 'listSchedule' %}">Agendamiento</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
+                  </li>
+                {% endif %}
+            {% endif %}
+          </ul>
+          <button id="toggle-theme" class="botonEditar">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+            Cambiar de color
+          </button>
+  
+          <script>
+            function aplicarTema(tema) {
+              document.documentElement.setAttribute("data-theme", tema);
+              localStorage.setItem("theme", tema);
+            
+              const icono = document.getElementById("theme-icon");
+              if (tema === "dark") {
+                icono.classList.remove("fa-moon");
+                icono.classList.add("fa-sun");
+              } else {
+                icono.classList.remove("fa-sun");
+                icono.classList.add("fa-moon");
+              }
+            }
+          
+            // Al cargar la página
+            window.addEventListener("DOMContentLoaded", () => {
+              const temaGuardado = localStorage.getItem("theme");
+              const tema = temaGuardado || "light"; // Tema claro por defecto
+              aplicarTema(tema);
+            
+              // Agrega el evento del botón
+              const boton = document.getElementById("toggle-theme");
+              if (boton) {
+                boton.addEventListener("click", () => {
+                  const temaActual = document.documentElement.getAttribute("data-theme");
+                  const nuevoTema = temaActual === "dark" ? "light" : "dark";
+                  aplicarTema(nuevoTema);
+                });
+              }
+            });
+          </script> 
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <div class="container-fluid espaciadoFooter"></div>
+
+  <footer class="bg-gradient bg-primary text-white pt-5 pb-4">
+    <div class="container">
+      <div class="row text-center text-md-start">
+
+        <!-- Nosotros -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold">Nosotros</h5>
+          <p>
+            Nuestros ascensores cuentan con tecnología de punta de última generación hecha a medida y petición exclusiva del cliente.
+          </p>
+        </div>
+
+        <!-- Enlaces -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold">Enlaces</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://vertitec.co/nosotros/" target="_blank" class="text-white-50 text-decoration-none">Nosotros</a></li>
+            <li><a href="https://vertitec.co/servicios/" target="_blank"  class="text-white-50 text-decoration-none">Servicios</a></li>
+            <li><a href="https://vertitec.co/contacto/" target="_blank" class="text-white-50 text-decoration-none">Contacto</a></li>
+          </ul>
+        </div>
+
+        <!-- Contacto -->
+        <div class="col-md-4 mb-4">
+          <h5 class="fw-bold">Contacto</h5>
+          <p class="mb-1">Carrera 62 #103-44<br>Edificio del Reloj<br>Oficina 201</p>
+          <p class="mb-1">comercial@vertitec.co<br>info@vertitec.co</p>
+          <p class="mb-0">+57 031 526 869<br>+57 318 523 3392</p>
+        </div>
+
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+
+
+<script src="{% static '/css/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static '/css/bootstrap.bundle.min.js.map' %}"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+/* Importar tipografias para toda la plataforma */
+@font-face {
+  font-family: 'AvenirLTStd-Black';
+  src: url('AvenirLTStd-Black.otf') format('truetype');
+}
+@font-face {
+  font-family: 'AvenirLTStd-Book';
+  src: url('AvenirLTStd-Book.otf') format('truetype');
+}
+@font-face {
+  font-family: 'AvenirLTStd-Roman';
+  src: url('AvenirLTStd-Roman.otf') format('truetype');
+}
+
+/* Variables */
+:root {
+    /* Tipografias */
+    --font800: 'AvenirLTStd-Black', sans-serif;
+    --font600: 'AvenirLTStd-Book', sans-serif;
+    --font400: 'AvenirLTStd-Roman', sans-serif;
+    /* Colores version oscura */
+    --darkcolor1: #111c28; 
+    --darkcolor2: #0b141b; 
+    --darkcolor3: #18222d; 
+    --darkcolor4: white;     
+}
+
+body{
+    background-color: var(--darkcolor1);
+    font-family: var(--font400);
+    
+}   
+.custom-navbar {
+    background-color: var(--darkcolor2);
+}
+/* Por si se requiere mas fuerza al item seleccionado del navbar
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.267); 
+    border-radius: 0.25rem;
+    transition: background-color 0.3s ease;
+}
+*/
+.img-Navbar{
+    max-width: 6em;
+    margin-right: 1em;
+}
+
+/*Login*/
+.container_content {
+    display: flex;
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center;     /* Centra verticalmente */
+    min-height: 80vh;       /* Asegura que ocupe toda la altura de la pantalla */
+}
+
+.container_form {
+    width: 100%;
+    max-width: 40%;
+    background-color: var(--darkcolor3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* Sombra suave */
+    text-align: center; /* Centra texto y elementos inline */
+    border-radius: 15px;    
+    padding: 2em;
+}
+
+.container_form form {
+    width: 100%;
+    max-width: 100%; /* o menos si lo quieres más angosto */
+    margin: 0 auto;   /* Esto centra el formulario horizontalmente */
+    text-align: center; /* Opcional: para que los labels/inputs no queden centrados */
+}
+/* Query para móviles */
+@media (max-width: 768px) {
+    .container_form {
+        max-width: 80%;
+    }
+}
+.titleText{
+    font-family: 'AvenirLTStd-Book';
+    color: var(--darkcolor4);
+    padding: 0.3em;
+    font-weight: 600;
+    font-size: 2.5em;
+    line-height: 1em;
+}
+.infoText{
+    color: var(--darkcolor4);
+    padding: 0.3em 0em;
+    font-weight: 600;
+    font-size: 1.5em;
+}
+/* Query para móviles */
+@media (max-width: 768px) {
+    .titleText{
+        font-size: 2em;
+    }
+}
+.labelInputs{
+    color: var(--darkcolor4);
+    padding: 0.3em 0em;
+}
+.inputForm{
+    border-radius: 5px;
+    border-style: none;
+    background-color: var(--darkcolor2);
+    padding: 0.7em;
+    color: var(--darkcolor4);
+}
+/* Query para móviles */
+@media (max-width: 768px) {
+    .inputForm{
+        width: 100%; /* Usa todo el ancho del contenedor padre */
+    }
+}
+.inputForm:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+    color: var(--darkcolor4);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.buttonSendForm{
+    border-style: none;
+    padding: 0.7em;
+    background-color: #2f6fdd;
+    color: var(--darkcolor4);
+    border-radius: 5px;
+    transition: background-color 0.2s; /* Aplica la animación siempre */
+}
+.buttonSendForm:hover{
+    background-color: #214fa0;
+}
+
+
+.containerTitlesTable{
+    border-radius: 8px 8px 0px 0px;
+    border-style: none;
+    background-color: var(--darkcolor3);;
+    padding: 0.7em;
+    color: var(--darkcolor4); 
+    width: 100%;
+}
+.containerInfoTable{
+    position: relative; /* Establece el contexto de posicionamiento */
+    border-radius: 0px;
+    border-style: none;
+    background-color: var(--darkcolor3);;
+    padding: 0.7em;
+    color: var(--darkcolor4); 
+    width: 100%;
+}
+.containerInfoTable::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 2%; /* Comienza desde el 10% del ancho */
+    width: 95%; /* El ancho del borde es el 80% del contenedor */
+    height: 1px; /* Ajusta el grosor del borde */
+    background-color: rgba(255, 255, 255, 0.219); /* Color del borde */
+}
+.containerInfoTable:hover {
+    background-color: #10171f;
+    transition: background-color 0.2s; /* Aplica la animación siempre */
+}
+
+.titlesTable{
+    color: var(--darkcolor4);
+    padding: 1.3em 0em 0em 0em;
+    font-weight: 600;
+    font-size: 1.5em;
+    line-height: 0.5em;
+}
+.infoTable{
+    color: var(--darkcolor4);
+    padding: 0.3em 0em;
+    font-size: 1em;
+    line-height: 1.5em;
+    margin: 0; /* Elimina margen por defecto del <p> */
+}
+
+.tableData{
+    width: 95%;
+    background-color: var(--darkcolor3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* Sombra suave */
+    border-radius: 15px;    
+}
+.containerFilter{
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+
+/*Opciones*/
+.divOptions{
+    display: flex;
+    justify-content: center;
+}
+.botonEditar, .botonEliminar, .botonExpediente, .botonCrear{
+    font-family: var(--font400);
+    color: var(--darkcolor4) !important;
+    font-weight: 400;
+    font-size: 0.8em;
+    margin-left: 0.5em;
+    text-decoration: none;
+    border-style: none;
+    border-radius: 6px;
+    padding: 0.5em;
+    transition: background-color 0.3s ease-in-out; 
+}
+.botonEditar{
+    background-color: #3f80ea;
+}
+.botonEditar:hover{
+    background-color: #0f3b83;
+}
+.botonEliminar{
+    background-color: #ea3f3f;
+    padding: 0.5em 1.2em;
+}
+.botonEliminar:hover{
+    background-color: #830f0f;
+}
+.botonExpediente{
+    background-color: #FF9800;
+}
+.botonExpediente:hover{
+    background-color: #4d2701;
+}
+.botonCrear{
+    background-color: #4CAF50;
+}   
+.botonCrear:hover{
+    background-color: #123113;
+}
+
+
+/*inputs*/
+.inputFilter{
+    border-radius: 5px;
+    border-style: none;
+    background-color: var(--darkcolor2);;
+    padding: 0.4em;
+    color: var(--darkcolor4);
+}
+.inputFilter:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+    color: var(--darkcolor4);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.divData {
+    display: flex;
+    align-items: center;   /* Vertical */
+    justify-content: center; /* Horizontal */
+}
+
+/*Footer*/
+.containerAll{
+    display: grid;
+    min-height: 100vh; /* Hace que el contenedor ocupe toda la altura de la pantalla */
+    grid-template-rows: auto 1fr auto; /* Tres filas: header, main, footer */
+}  
+
+
+.espaciadoFooter{
+    background-color: var(--darkcolor1);;
+    padding: 1em;
+}
+footer {
+    background-color: var(--darkcolor2);
+    color: var(--darkcolor4);
+    text-align: center;
+    padding: 10px 0;
+    position: relative;;
+}
+.textoFooter{
+    color: var(--darkcolor4) ;
+    font-weight: 400;
+    font-size: 0.8em;
+}
