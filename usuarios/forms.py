@@ -2,22 +2,42 @@ from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.hashers import make_password
 
+# Formulario para filtros del listado de usuarios técnicos y administradores
+class UserFilterForm(forms.Form):
+    nombre = forms.CharField(
+        required=False,
+        label='Buscar por nombre',
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Nombre del usuario',
+                'class': 'inputForm',
+                'autocomplete':"off"
+            }
+        )
+    )
+    rol = forms.ChoiceField(
+        required=False,
+        label='Rol',
+        choices=[
+            ('', 'Cualquiera'),
+            ('Administrador', 'Administrador'),
+            ('Técnico', 'Técnico')
+        ],
+        widget=forms.Select(attrs={'class': 'inputForm'})
+    )
+
+
+# Formulario para crear / editar un usuario
 class UnifiedUserForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={
-            'placeholder': 'Contraseña',
-            'class': 'inputForm'
-        })
+        widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña', 'class': 'inputForm'})
     )
     password2 = forms.CharField(
         label='Confirmar contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={
-            'placeholder': 'Confirmar contraseña',
-            'class': 'inputForm'
-        })
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirmar contraseña', 'class': 'inputForm'})
     )
 
     ROLE_CHOICES = [
@@ -49,6 +69,16 @@ class UnifiedUserForm(forms.ModelForm):
         if self.is_update:
             self.fields['password1'].required = False
             self.fields['password2'].required = False
+
+            current_group = self.instance.groups.first()
+            if current_group:
+                if current_group.name == 'Administrador':
+                    self.fields['role'].initial = 'admin'
+                elif current_group.name == 'Técnico':
+                    self.fields['role'].initial = 'tecnico'
+            # ✅ Hacemos que no sea obligatorio en edición
+            self.fields['role'].required = False
+            self.fields['role'].widget = forms.HiddenInput()
         else:
             self.fields['password1'].required = True
             self.fields['password2'].required = True
@@ -72,19 +102,19 @@ class UnifiedUserForm(forms.ModelForm):
         if commit:
             user.save()
 
-            # Asignar grupo basado en el campo role
-            selected_role = self.cleaned_data.get('role')
+            # Asignar grupo solo si se crea o si role está en el POST
+            role = self.cleaned_data.get('role')
+            if role:
+                if role == 'admin':
+                    group = Group.objects.get(name='Administrador')
+                elif role == 'tecnico':
+                    group = Group.objects.get(name='Técnico')
+                else:
+                    group = None
 
-            if selected_role == 'admin':
-                group = Group.objects.get(name='Administrador')
-            elif selected_role == 'tecnico':
-                group = Group.objects.get(name='Técnico')
-            else:
-                group = None
-
-            if group:
-                user.groups.clear()  # Elimina cualquier grupo previo
-                user.groups.add(group)
+                if group:
+                    user.groups.clear()
+                    user.groups.add(group)
 
         return user
 
@@ -105,7 +135,3 @@ class loginForm(forms.Form):
             'class': 'inputForm'
         })
     )
-
-
-
-

@@ -254,12 +254,12 @@ body{
     margin-left: 0.5em;
     text-decoration: none;
     border-style: none;
-    border-radius: 6px;
-    padding: 0.5em;
+    border-radius: 4px;
+    padding: 8px 12px;
     transition: background-color 0.3s ease-in-out; 
 }
 .botonEditar{
-    background-color: #3f80ea;
+    background-color: #007bff;
 }
 .botonEditar:hover{
     background-color: #0f3b83;

@@ -1,14 +1,46 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import  get_object_or_404, render, redirect
 from utils.decorators import admin_required
 from django.contrib.auth.models import Group, User
-from .forms import  buildingsForm, towerForm 
+from .forms import  buildingsForm, towerForm, UserFilterForm
 from .models import buildings, towers
+
+
+# Autocompletado de nombre del edificio
+def user_suggestions(request):
+    query = request.GET.get('q', '')  # texto escrito
+    suggestions = []
+
+    if query:
+        # Buscar por nombre de pila (first_name) en admins y técnicos
+        usuarios = User.objects.filter(
+            groups__name__in=['Cliente'],
+            first_name__icontains=query
+        ).distinct()[:5]  # limitar a 5 resultados
+
+        # Devolver solo el nombre real 
+        suggestions = list(
+            usuarios.values_list('first_name', flat=True)
+        )
+
+    return JsonResponse(suggestions, safe=False)
 
 # Vistas para CRUD de edificios / clientes 
 # Vista para listar los edificios / clientes
 @admin_required
 def listBuildings(request):
+    form = UserFilterForm(request.GET or None)
+
+    # Partimos de todos los usuarios que estén en los grupos permitidos
+    usuarios = User.objects.filter(groups__name__in=['Cliente']).distinct()
+
+    if form.is_valid():
+        nombre = form.cleaned_data.get('nombre')
+
+        if nombre:
+            # Buscar por first_name en lugar de username
+            usuarios = usuarios.filter(first_name__icontains=nombre)
+
     if request.method == "GET":
         buildingsList = buildings.objects.all()
         
@@ -19,7 +51,8 @@ def listBuildings(request):
                 print(f"{field.name}: {getattr(u, field.name)}")
         """
         return render(request, 'listBuildings.html', {
-            "buildingList":buildingsList
+            "buildingList":buildingsList,
+            "form": form
         })
         
 

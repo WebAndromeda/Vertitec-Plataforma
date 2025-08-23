@@ -3,8 +3,28 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from utils.decorators import admin_required
 from django.contrib.auth.models import User
-from django.http import HttpResponse
-from .forms import loginForm, UnifiedUserForm 
+from django.http import HttpResponse, JsonResponse
+from .forms import loginForm, UnifiedUserForm, UserFilterForm
+
+
+# Autocompletado de nombre real
+def user_suggestions(request):
+    query = request.GET.get('q', '')  # texto escrito
+    suggestions = []
+
+    if query:
+        # Buscar por nombre de pila (first_name) en admins y técnicos
+        usuarios = User.objects.filter(
+            groups__name__in=['Administrador', 'Técnico'],
+            first_name__icontains=query
+        ).distinct()[:5]  # limitar a 5 resultados
+
+        # Devolver solo el nombre real (Se podria concatenar con apellido en el futuro)
+        suggestions = list(
+            usuarios.values_list('first_name', flat=True)
+        )
+
+    return JsonResponse(suggestions, safe=False)
 
 
 # Index
@@ -29,24 +49,35 @@ def createUser(request):
             'update': False
         })
 
-# Vista para editar un usuario
-@admin_required        
+@admin_required
 def editUser(request):
     user_id = request.GET.get("id")
     user = get_object_or_404(User, id=user_id)
 
     if request.method == "POST":
+        # Guardamos el grupo actual para mantenerlo si no se envía en POST
+        grupo_actual = user.groups.first()
         form = UnifiedUserForm(request.POST, instance=user, is_update=True)
+
         if form.is_valid():
-            form.save()
+            instance = form.save(commit=False)
+            instance.save()
+
+            # Si no se envió role en el POST, mantenemos el grupo actual
+            if not form.cleaned_data.get('role') and grupo_actual:
+                user.groups.clear()
+                user.groups.add(grupo_actual)
+            else:
+                form.save(commit=True)
+
             return redirect('userList') 
     else:
         form = UnifiedUserForm(instance=user, is_update=True)
 
-        return render(request, 'createUser.html', {
-            'forms': form,
-            'update': True
-        })
+    return render(request, 'createUser.html', {
+        'forms': form,
+        'update': True
+    })
 
 # Vista para eliminar un usuario  
 @admin_required
@@ -68,17 +99,28 @@ def deleteUser(request):
 # Vista para listar los usuarios
 @admin_required
 def userList(request):
-    if request.method == "GET":
-        print("Usuario:", request.user.username)
-        print("Grupos del usuario:", list(request.user.groups.values_list('name', flat=True)))
-        # if request.user.groups.filter(name='Administrador').exists():
-        
-        # usuarios = User.objects.all() Mostrar todos los usuarios
-        usuarios = User.objects.filter(groups__name__in=['Administrador', 'Técnico']).distinct() # Mostrar solo los de perfil Administrdor y tecnico
+    form = UserFilterForm(request.GET or None)
 
-        return render(request, 'userList.html',{
-            "usuarios":usuarios
-        })
+    # Partimos de todos los usuarios que estén en los grupos permitidos
+    usuarios = User.objects.filter(groups__name__in=['Administrador', 'Técnico']).distinct()
+
+    if form.is_valid():
+        nombre = form.cleaned_data.get('nombre')
+        rol = form.cleaned_data.get('rol')  # Nuevo campo en el formulario
+
+        if nombre:
+            # Buscar por first_name en lugar de username
+            usuarios = usuarios.filter(first_name__icontains=nombre)
+
+        # Filtrar por rol solo si no es "Cualquiera"
+        if rol and rol != 'cualquiera':
+            usuarios = usuarios.filter(groups__name=rol)
+
+    return render(request, 'userList.html', {
+        "usuarios": usuarios,
+        "form": form
+    })
+
 
 
 # Vistas para inicio y cierre de sesión

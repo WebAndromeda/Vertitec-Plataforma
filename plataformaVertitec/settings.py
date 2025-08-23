@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'usuarios',
     'schedule',
     'buildings',
-    'core'
+    'core',
+    'replacementParts'
 ]
 
 MIDDLEWARE = [

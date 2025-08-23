@@ -1,0 +1,96 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-6">
+            <h1 class="titleText">Repuestos</h1>
+        </div>
+        <div class="col-6">
+            {% if building %}
+                <a href="{% url 'createPart' %}?id={{ building.id }}"> <!-- Crear repuesto -->
+                    <button class="botonCrear">
+                        <i class="fa-solid fa-plus"></i>
+                        Nuevo repuesto
+                    </button> <br> <br>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+
+    <!-- Titulos de la tabla -->
+    <div class="tableData">
+        <div class="row containerTitlesTable">
+            <div class="col-3">
+                <p class="titlesTable">Edificio</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Torre</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Repuesto</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Precio</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Estado</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Pagado</p>
+            </div>
+            <div class="col-1">
+                <p class="titlesTable">Instalado</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Opciones</p>
+            </div>
+        </div>
+    
+
+    {% for repuesto in repuestos %}
+        <div class="row containerInfoTable">
+            <div class="col-3">
+                <p class="infoTable">{{ repuesto.building.first_name|default:repuesto.building.username }}</p>
+            </div>
+            <div class="col-1">
+                <p class="infoTable">{{ repuesto.tower.name }}</p>
+            </div>
+            <div class="col-2">
+                <p class="infoTable">{{ repuesto.nameItem }}</p>
+            </div>
+            <div class="col-1">
+                <p class="infoTable">{{ repuesto.price }}</p>
+            </div>
+            <div class="col-1">
+                <p class="infoTable">{% if repuesto.approved %}✅{% else %}❌{% endif %}</p>
+            </div>
+            <div class="col-1">
+                <p class="infoTable">{{ repuesto.get_status_Payment_display }}</p>
+            </div>
+            <div class="col-1">
+                <p class="infoTable">{{ repuesto.get_status_Install_display }}</p>
+            </div>
+                
+            <div class="col-2">
+                <a href="{% url 'editPart' repuesto.id %}"> <!-- Editar repuesto -->
+                    <button class="botonEditar">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        Editar
+                    </button>
+                </a>
+                <form action="{% url 'deletePart' repuesto.id %}" method="post" style="display:inline;"> <!-- Eliminar repuesto -->
+                    {% csrf_token %}
+                    <button type="submit" class="botonEliminar" onclick="return confirm('¿Estás seguro de eliminar este repuesto?');">
+                        <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</center>
+{% endblock %}

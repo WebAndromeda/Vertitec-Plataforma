@@ -49,13 +49,13 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 - CRUD de técnicos
 - CRUD de administradores
 - CRUD de edificios/clientes
+- CRUD de repuestos
 
 ---
 
 ## 🚧 Funcionalidades pendientes
 
 - Estilos responsive en todos los CRUD
-- CRUD de repuestos
 - Paginación y filtros en listados
 - Campos dependientes (por ejemplo, torres según edificio)
 - Buscador de edificios

@@ -9,19 +9,65 @@
             <h1 class="titleText">Edificios / Clientes</h1>
         </div>
         <div class="col-6">
-            <a href="{% url 'createBuilding' %}"> <!-- Crear usuario -->
+            <a href="{% url 'createBuilding' %}"> <!-- Crear cliente / edificio -->
                 <button class="botonCrear">
                     <i class="fa-solid fa-plus"></i>
                     Nuevo edificio
-                </button> <br> <br>
+                </button> 
             </a>
+            <a href="{% url 'listParts' %}"> <!-- Ver todos lods Repuestos -->
+                <button class="botonExpediente">
+                    <i class="fa-regular fa-file"></i>
+                    Ver Repuestos
+                </button>
+            </a> <br> <br>   
 
-            <form action="">
-                <label for=""> 
-                    <input type="text" class="inputFilter" placeholder="Buscar por nombre...">    
-                </label>
-                <button type="submit" class="botonEditar">Buscar</button>
-            </form>
+            <style>
+    /* Contenedor del formulario */
+    form {
+        position: relative;
+        max-width: 300px;
+    }
+
+
+    /* Lista de sugerencias */
+    .suggestions-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #111c28;
+        border: 1px solid white;
+        border-top: none;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none; /* Oculto por defecto */
+    }
+
+    /* Cada opción */
+    .suggestions-list li {
+        padding: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        color: white;
+    }
+
+    /* Hover en opciones */
+    .suggestions-list li:hover {
+        background-color: #344455;
+    }
+</style>
+
+<form method="get">
+    {% csrf_token %}
+    {{ form.nombre }}
+    <ul id="suggestions" class="suggestions-list"></ul>
+    <button type="submit" class="botonEditar">Buscar</button>
+</form>
         </div>
     </div>
     
@@ -88,7 +134,7 @@
                         Ver torres
                     </button>
                 </a>
-                <a href="/"> <!-- Repuestos cliente -->
+                <a href="{% url 'listParts' %}?id={{ individualbuildingList.user.id }}"> <!-- Repuestos cliente -->
                     <button class="botonExpediente">
                         <i class="fa-regular fa-file"></i>
                         Repuestos

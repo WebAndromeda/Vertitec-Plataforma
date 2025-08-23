@@ -4,6 +4,20 @@ from django.contrib.auth.hashers import make_password
 from .models import buildings, towers
 
 
+# Formulario para filtros del listado de edificios / clientes
+class UserFilterForm(forms.Form):
+    nombre = forms.CharField(
+        required=False,
+        label='Buscar por nombre',
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'Nombre del edificio',
+                'class': 'inputForm',
+                'autocomplete':"off"
+            }
+        )
+    )
+
 # Formulario para crear o editar un edificio / cliente
 class buildingsForm(forms.ModelForm):
     password1 = forms.CharField(
