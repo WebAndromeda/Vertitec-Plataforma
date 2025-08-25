@@ -16,102 +16,99 @@
                 </button> <br> <br>
             </a>
 
-<style>
-    /* Contenedor del formulario */
-    form {
-        position: relative;
-        max-width: 300px;
-    }
+            <form method="get">
+                {% csrf_token %}
+                {{ form.nombre }}
+                <ul id="suggestions" class="suggestions-list"></ul>
+                {{ form.rol }}
+                <button type="submit" class="botonEditar">Buscar</button>
+            </form>
 
+            <style>
+                /* Contenedor del formulario */
+                form {
+                    position: relative;
+                }
+            
+                /* Lista de sugerencias */
+                .suggestions-list {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #111c28;
+                    border: 1px solid white;
+                    border-top: none;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 1000;
+                    display: none; /* Oculto por defecto */
+                }
+            
+                /* Cada opción */
+                .suggestions-list li {
+                    padding: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    color: white;
+                }
+            
+                /* Hover en opciones */
+                .suggestions-list li:hover {
+                    background-color: #344455;
+                }
+            </style>
 
-    /* Lista de sugerencias */
-    .suggestions-list {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: #111c28;
-        border: 1px solid white;
-        border-top: none;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        max-height: 200px;
-        overflow-y: auto;
-        z-index: 1000;
-        display: none; /* Oculto por defecto */
-    }
+            <script>
+                const input = document.querySelector('input[name="nombre"]');
+                const suggestionsList = document.getElementById('suggestions');
 
-    /* Cada opción */
-    .suggestions-list li {
-        padding: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        color: white;
-    }
+                input.addEventListener('input', () => {
+                    const query = input.value;
 
-    /* Hover en opciones */
-    .suggestions-list li:hover {
-        background-color: #344455;
-    }
-</style>
-
-<form method="get">
-    {% csrf_token %}
-    {{ form.nombre }}
-    <ul id="suggestions" class="suggestions-list"></ul>
-    {{ form.rol }}
-    <button type="submit" class="botonEditar">Buscar</button>
-</form>
-
-<script>
-    const input = document.querySelector('input[name="nombre"]');
-    const suggestionsList = document.getElementById('suggestions');
-
-    input.addEventListener('input', () => {
-        const query = input.value;
-
-        if (query.length < 2) {
-            suggestionsList.style.display = 'none';
-            suggestionsList.innerHTML = '';
-            return;
-        }
-
-        fetch(`/user-suggestions/?q=${encodeURIComponent(query)}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            suggestionsList.innerHTML = '';
-
-            if (data.length > 0) {
-                data.forEach(username => {
-                    const li = document.createElement('li');
-                    li.textContent = username;
-                    li.addEventListener('click', () => {
-                        input.value = username;
-                        suggestionsList.innerHTML = '';
+                    if (query.length < 2) {
                         suggestionsList.style.display = 'none';
+                        suggestionsList.innerHTML = '';
+                        return;
+                    }
+
+                    fetch(`/user-suggestions/?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsList.innerHTML = '';
+
+                        if (data.length > 0) {
+                            data.forEach(username => {
+                                const li = document.createElement('li');
+                                li.textContent = username;
+                                li.addEventListener('click', () => {
+                                    input.value = username;
+                                    suggestionsList.innerHTML = '';
+                                    suggestionsList.style.display = 'none';
+                                });
+                                suggestionsList.appendChild(li);
+                            });
+                            suggestionsList.style.display = 'block';
+                        } else {
+                            suggestionsList.style.display = 'none';
+                        }
                     });
-                    suggestionsList.appendChild(li);
                 });
-                suggestionsList.style.display = 'block';
-            } else {
-                suggestionsList.style.display = 'none';
-            }
-        });
-    });
 
-    // Cierra la lista si se hace clic fuera
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('form')) {
-            suggestionsList.style.display = 'none';
-        }
-    });
-</script>
-
+                // Cierra la lista si se hace clic fuera
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('form')) {
+                        suggestionsList.style.display = 'none';
+                    }
+                });
+            </script>
         </div>
     </div>
     
@@ -120,13 +117,13 @@
     <div class="tableData">
         <div class="row containerTitlesTable">
             <div class="col-2">
-                <p class="titlesTable">Nombre de usuario</p>
-            </div>
-            <div class="col-2">
                 <p class="titlesTable">Nombre</p>
             </div>
             <div class="col-2">
                 <p class="titlesTable">Apellido</p>
+            </div>
+            <div class="col-2">
+                <p class="titlesTable">Usuario</p>
             </div>
             <div class="col-2">
                 <p class="titlesTable">Correo</p>
@@ -143,18 +140,18 @@
     {% for user in usuarios %}
         <div class="row containerInfoTable">
             <div class="col-2 divData">
-                <p class="infoTable">{{ user.username }}</p>
+                <p class="infoTable">{{user.first_name }}</p>
             </div>
             <div class="col-2 divData">
-                {% if user.first_name %}
-                    <p class="infoTable">{{ user.first_name }}</p>
+                {% if user.last_name %}
+                    <p class="infoTable">{{ user.last_name }}</p>
                 {% else %}
                     <p class="infoTable">No registrado</p>
                 {% endif %}
             </div>
             <div class="col-2 divData">
-                {% if user.last_name %}
-                    <p class="infoTable">{{ user.last_name }}</p>
+                {% if user.username %}
+                    <p class="infoTable">{{ user.username }}</p>
                 {% else %}
                     <p class="infoTable">No registrado</p>
                 {% endif %}

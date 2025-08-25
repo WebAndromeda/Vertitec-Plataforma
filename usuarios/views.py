@@ -8,6 +8,7 @@ from .forms import loginForm, UnifiedUserForm, UserFilterForm
 
 
 # Autocompletado de nombre real
+@admin_required
 def user_suggestions(request):
     query = request.GET.get('q', '')  # texto escrito
     suggestions = []

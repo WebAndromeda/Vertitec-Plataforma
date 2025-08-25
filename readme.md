@@ -50,15 +50,24 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 - CRUD de administradores
 - CRUD de edificios/clientes
 - CRUD de repuestos
+- En el agendamiento, el campo de "Torres" depende de "Edificios"
+- Buscador de edificios
 
 ---
 
 ## 🚧 Funcionalidades pendientes
 
-- Estilos responsive en todos los CRUD
 - Paginación y filtros en listados
-- Campos dependientes (por ejemplo, torres según edificio)
-- Buscador de edificios
+- Mejorar setup_app para que cree todo lo necesario al desplegar
+- Mostrar errores en los formularios (Ej: Si el usuario coloca texto en un campo que espera numeros)
+- Vistas de tecnicos y clientes, solo deben ver informacion relevante (Ej: Los cliente nos deben ver el campo "Edificio" ya que siempre sera el mismo valor para ellos)
+- Los listados al ser vacios deben tener un texto como "No hay datos registrados" en lugar de aparecer vacios
+- Cambiar orden en el que se envian los datos (Ej: Mostrar agendamiento por fecha actual o mas cercana)
+- Añadir al agendamiento si pertenece a ascensor o puertas
+- Formulario ascensores
+- Formulario puertas
+- Envio de correos (Notficaciones)
+- Estilos responsive en todos los CRUD
 
 ---
 

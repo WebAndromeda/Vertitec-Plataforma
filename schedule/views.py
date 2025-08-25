@@ -1,40 +1,110 @@
 from django.contrib.auth.decorators import login_required
 from utils.decorators import admin_required
-from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from .forms import ScheduleForm
+from .forms import ScheduleForm, ScheduleFilterForm
 from .models import schedule
+from dateutil.relativedelta import relativedelta
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from buildings.models import buildings, towers
+from django.core.paginator import Paginator
+
+# Crear opciones para seleccionar la torre del edificio seleccionado
+def tower_suggestions(request):
+    building_id = request.GET.get("building_id")
+    suggestions = []
+
+    if building_id:
+        towersList = towers.objects.filter(building_id=building_id).values("id", "name")
+        suggestions = list(towersList)
+
+    return JsonResponse(suggestions, safe=False)
+
+# Autocompletado del edificio
+def building_suggestions(request):
+    query = request.GET.get('q', '')
+    suggestions = []
+
+    if query:
+        # Buscar solo usuarios en el grupo Cliente cuyo nombre coincida
+        clientes = User.objects.filter(
+            groups__name='Cliente',
+            first_name__icontains=query
+        ).distinct()[:5]
+
+        # Ahora devolvemos el id del building, no del user
+        suggestions = [
+            {"id": cliente.buildings.id, "first_name": cliente.first_name}
+            for cliente in clientes if hasattr(cliente, "buildings")
+        ]
+
+    return JsonResponse(suggestions, safe=False)
+
+# Autocompletado de nombre del edificio
+def building_suggestionsS(request):
+    query = request.GET.get('q', '')  
+    suggestions = []
+
+    if query:
+        usuarios = User.objects.filter(
+            groups__name__in=['Cliente'],
+            first_name__icontains=query
+        ).distinct()[:5]
+
+        # DEVOLVER SOLO LISTA DE STRINGS (igual que en user_suggestions)
+        suggestions = list(
+            usuarios.values_list('first_name', flat=True)
+        )
+
+    return JsonResponse(suggestions, safe=False)
 
 
-# Vista para listar los agendamientos
+# Vista para listar los agendamientos con filtros
 @login_required
 def listSchedule(request):
-    if request.method == "GET":
-        print("Usuario:", request.user.username)
-        print("Grupos del usuario:", list(request.user.groups.values_list('name', flat=True)))
+    scheduleModel = schedule.objects.all().order_by('-date', 'hour')
 
-        # Si es administrador, mostrar todos
-        if request.user.groups.filter(name='Administrador').exists():
-            scheduleModel = schedule.objects.all()
+    # Aplicar filtros si el formulario es válido
+    form = ScheduleFilterForm(request.GET or None)
+    if form.is_valid():
+        start_date = form.cleaned_data.get("start_date")
+        end_date = form.cleaned_data.get("end_date")
+        technician = form.cleaned_data.get("technician")
+        building_name = form.cleaned_data.get("building")
+        status = form.cleaned_data.get("status")
 
-        # Si es técnico, mostrar solo los asignados como técnico
-        elif request.user.groups.filter(name='Técnico').exists():
-            scheduleModel = schedule.objects.filter(technician=request.user)
+        if start_date:
+            scheduleModel = scheduleModel.filter(date__gte=start_date)
+        if end_date:
+            scheduleModel = scheduleModel.filter(date__lte=end_date)
+        if technician:
+            scheduleModel = scheduleModel.filter(technician=technician)
+        if building_name:
+            scheduleModel = scheduleModel.filter(
+                tower__building__user__first_name__icontains=building_name
+            )
+        if status == "true":
+            scheduleModel = scheduleModel.filter(status=True)
+        elif status == "false":
+            scheduleModel = scheduleModel.filter(status=False)
 
-        # Si es cliente, mostrar solo los agendamientos que le corresponden
-        else:
-            scheduleModel = schedule.objects.filter(client=request.user)
+    # Filtro por rol del usuario
+    if request.user.groups.filter(name='Administrador').exists():
+        pass  # ve todos
+    elif request.user.groups.filter(name='Técnico').exists():
+        scheduleModel = scheduleModel.filter(technician=request.user)
+    else:  # Cliente
+        scheduleModel = scheduleModel.filter(client=request.user)
 
-        return render(request, 'listSchedule.html', {
-            "schedule": scheduleModel
-        })
+    # Paginación 
+    paginator = Paginator(scheduleModel, 10)  # 10 agendamientos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-"""Ver por consola los atributos a los que es posible acceder
-    for u in scheduleModel:
-        print("---- Datos Schedule ----")
-        for field in schedule._meta.fields:
-            print(f"{field.name}: {getattr(u, field.name)}")
-"""
+    return render(request, 'listSchedule.html', {
+        "schedule": page_obj,  # pasamos page_obj al template
+        "form": form,
+    })
 
 
 # Vista para crear un agendamiento
@@ -43,7 +113,39 @@ def createSchedule(request):
     if request.method == "POST":
         form = ScheduleForm(request.POST)
         if form.is_valid():
-            form.save()  
+            sched = form.save(commit=False)
+
+            # Guardamos el agendamiento inicial
+            sched.save()
+
+            # Si es recurrente mensual, creamos futuras repeticiones
+            if sched.recurrence == "monthly":
+                base_date = sched.date
+                for i in range(1, 6):  # crea 6 meses adicionales, ajusta según necesidad
+                    try:
+                        new_date = base_date + relativedelta(months=i)
+                        schedule.objects.create(
+                            client=sched.client,
+                            tower=sched.tower,
+                            date=new_date,
+                            hour=sched.hour,
+                            status=False,
+                            recurrence=sched.recurrence,
+                            technician=sched.technician
+                        )
+                    except ValueError:
+                        # Si el día no existe (ej: 30 febrero), ajustamos al último día del mes
+                        new_date = (base_date + relativedelta(months=i, day=31))
+                        schedule.objects.create(
+                            client=sched.client,
+                            tower=sched.tower,
+                            date=new_date,
+                            hour=sched.hour,
+                            status=False,
+                            recurrence=sched.recurrence,
+                            technician=sched.technician
+                        )
+
             return redirect('listSchedule')
     else:
         form = ScheduleForm()
@@ -53,25 +155,29 @@ def createSchedule(request):
         'update': False
     })
 
-    
+
 # Vista para editar un agendamiento
-@admin_required        
+@login_required
 def editSchedule(request):
     schedule_id = request.GET.get("id")
     scheduleEdit = get_object_or_404(schedule, id=schedule_id)
 
     if request.method == "POST":
-        form = ScheduleForm(request.POST, instance=scheduleEdit, is_update=True)
+        form = ScheduleForm(request.POST, instance=scheduleEdit)
         if form.is_valid():
             form.save()
-            return redirect('listSchedule') 
+            return redirect('listSchedule')
     else:
-        form = ScheduleForm(instance=scheduleEdit, is_update=True)
+        # Aquí asignamos manualmente initial para el campo 'client'
+        form = ScheduleForm(
+            instance=scheduleEdit,
+            initial={'client': scheduleEdit.client.first_name}
+        )
 
-        return render(request, 'createSchedule.html', {
-            'forms': form,
-            'update': True
-        })
+    return render(request, 'createSchedule.html', {
+        'forms': form,
+        'update': True
+    })
 
 
 # Vista para eliminar un agendamiento
@@ -79,63 +185,8 @@ def editSchedule(request):
 def deleteSchedule(request):
     schedule_id = request.GET.get("id")
 
-    if(schedule_id):
-        # Si existe el id del usuario, se elimina
-        scheduleDelete = schedule.objects.get(id=schedule_id)
+    if schedule_id:
+        scheduleDelete = get_object_or_404(schedule, id=schedule_id)
         scheduleDelete.delete()
 
-        # Despues a eliminarse, se redirecciona al listado de agendamientos
-        scheduleModel = schedule.objects.all()
-        return render(request, 'listSchedule.html',{
-            "schedule":scheduleModel
-        })
-    
-
-    """
-    Tengo que mostrar una plantilla html que muestra el contenido de una tabla o modelo, sin embargo, entre la informacion que tengo que mostrar, hay un dato que esta en otra tabla, el campo se llama "address"  ¿Que es mejor?
-    Opcion 1:
-        Crear una llave foranea entre la tabla que ya estoy mostrando  "Agendamiento" y la tabla Clientes / Edificios que es donde esta el campo address que quiero mostrar, p
-    Opcion 2:
-        En la vista o views.py pasarle a la plantilla tambien la tabla Clientes / Edificios
-
-    Adjunto una imagen de mas o menos como se ve la base de datos
-
-
-
-    Claro, pero piensa lo siguiente, tengo el siguiente modelo, como puedes ver, tiene 3 llaves foraenas, una al cliente, otra a los tecnicos, y otra a las torres, esto tiene sentido porque en cada agendamiento tengo que selecionar uno de los clientes, uno de los tecnicos y una de las torres, sin embargo hay un dato especial, es el campo address, este campo el usuario no debe seleccionarlo, ya que al seleccionar un cliente, el modelo de clientes ya esta asociado con una clave foranea a un modelo llamado buildings, el cual tiene unicamente una direccion para cada edificio, por lo que no tiene sentido poner al usuario a seleccionar entre una sola opcion. ¿Que me recomiendas?
-
-    from django.db import models
-from django.contrib.auth.models import User
-from buildings.models import buildings, towers
-
-# Modelo para guardar el agendamiento
-class schedule(models.Model):
-    # Usuario que solicita el agendamiento (cliente)
-    client = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        limit_choices_to={'groups__name': 'Cliente'},
-        related_name='client_schedules'
-    )
-
-    tower = models.ForeignKey(towers, on_delete=models.CASCADE)
-    # address = models.ForeignKey(buildings, on_delete=models.CASCADE)
-
-    date = models.DateField()
-    hour = models.TimeField()
-    status = models.BooleanField(default=False)
-
-    # Técnico asignado al agendamiento
-    technician = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        limit_choices_to={'groups__name': 'Técnico'},
-        related_name='technician_schedules'
-    )
-
-    def __str__(self):
-        return f"{self.date} - {self.hour} - {self.technician.username} - {self.tower.name}"
-
-
-    Adjunto una imagen de mas o menos como se ve la base de datos
-    """
+    return redirect('listSchedule')

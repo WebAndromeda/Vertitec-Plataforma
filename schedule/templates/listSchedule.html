@@ -6,44 +6,117 @@
     <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-4">
-            <h1 class="titleText">Agendamientos individuales</h1>
+            <h1 class="titleText">Agendamientos</h1>
         </div>
         <div class="col-8">
             <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
                 <button class="botonCrear">
                     <i class="fa-solid fa-plus"></i>
-                    Nuevos agendamientos
+                    Nuevos agendamiento
                 </button> 
             </a> <br> <br>
-            <a href=""> <!-- Crear agendamientos -->
-                <button class="botonCrear">
-                    <i class="fa-solid fa-plus"></i>
-                    Agendamientos mensuales
-                </button> 
-            </a> <br> <br>
-            <form action="">
-                <input type="date" class="inputFilter">
-                <select name="" id="" class="inputFilter">
-                    <option value="">Desconocido</option>
-                    <option value="">Por realizar</option>
-                    <option value="">Realizado</option>
-                </select>
-                <select name="" id="" class="inputFilter">
-                    <option value="">Desconocido</option>
-                    <option value="">Pepito 1</option>
-                    <option value="">Pepito 2</option>
-                    <option value="">Pepito 3</option>
-                </select>
-                <input type="text" class="inputFilter" placeholder="Nombre del edificio">    
-                
-                <button type="submit" class="botonEditar">Buscar</button>
+            <form method="get">
+                {{ form.start_date }}
+                {{ form.end_date }}
+                {{ form.technician }}
+                {{ form.building }}
+                {{ form.status }}
+                <ul id="suggestions" class="suggestions-list"></ul>
+                <button type="submit" class="botonEditar">Filtrar</button>
             </form>
+
+            <script>    
+                const input = document.querySelector('input[name="building"]');
+                const suggestionsList = document.getElementById('suggestions');
+            
+                input.addEventListener('input', () => {
+                    const query = input.value;
+                
+                    if (query.length < 2) {
+                        suggestionsList.style.display = 'none';
+                        suggestionsList.innerHTML = '';
+                        return;
+                    }
+                
+                    fetch(`/building_suggestionsB/?q=${encodeURIComponent(query)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsList.innerHTML = '';
+                    
+                        if (data.length > 0) {
+                            data.forEach(username => {
+                                const li = document.createElement('li');
+                                li.textContent = username;
+                                li.addEventListener('click', () => {
+                                    input.value = username;
+                                    suggestionsList.innerHTML = '';
+                                    suggestionsList.style.display = 'none';
+                                });
+                                suggestionsList.appendChild(li);
+                            });
+                            suggestionsList.style.display = 'block';
+                        } else {
+                            suggestionsList.style.display = 'none';
+                        }
+                    });
+                });
+            
+                // Cierra la lista si se hace clic fuera
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('form')) {
+                        suggestionsList.style.display = 'none';
+                    }
+                });
+            </script>
+
+            <style>
+                /* Contenedor del formulario */
+                form {
+                    position: relative;
+                }
+            
+                /* Lista de sugerencias */
+                .suggestions-list {
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: #111c28;
+                    border: 1px solid white;
+                    border-top: none;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    z-index: 1000;
+                    display: none; /* Oculto por defecto */
+                }
+            
+                /* Cada opción */
+                .suggestions-list li {
+                    padding: 8px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    color: white;
+                }
+            
+                /* Hover en opciones */
+                .suggestions-list li:hover {
+                    background-color: #344455;
+                }
+            </style>
         </div>
     </div>
     
 
-    <!-- Titulos de la tabla -->
+    <!-- Tabla datos -->
     <div class="tableData">
+        <!-- Titulos de la tabla -->
         <div class="row containerTitlesTable">
             <div class="col-1">
                 <p class="titlesTable">Fecha</p>
@@ -71,52 +144,67 @@
             </div>
         </div>
     
+        <!-- Datos -->
+        {% for individualSchedule in schedule %}
+            <div class="row containerInfoTable">
+                <div class="col-1 divData">
+                    <p class="infoTable">{{ individualSchedule.date }}</p>
+                </div>
+                <div class="col-1 divData">
+                    <p class="infoTable">{{ individualSchedule.hour }}</p>
+                </div>
+                <div class="col-1 divData">
+                    <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                </div>
+                <div class="col-2 divData">
+                    <p class="infoTable">{{ individualSchedule.technician }}</p>
+                </div>
+                <div class="col-2 divData">
+                    <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
+                </div>
+                <div class="col-2 divData">
+                    <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
+                </div>
+                <div class="col-1 divData">
+                    <p class="infoTable">{{ individualSchedule.tower.name }}</p>
+                </div>
+                    
+                <div class="col-2">
+                    <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                        <button class="botonEditar">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                            Editar
+                        </button>
+                    </a>
+                    
+                    <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
+                        <button class="botonEliminar">
+                            <i class="fa-solid fa-trash"></i>
+                            Eliminar
+                        </button>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+        <br>
+        <div>
+            {% if schedule.has_previous %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+            {% endif %}
 
-    {% for individualSchedule in schedule %}
-        <div class="row containerInfoTable">
-            <div class="col-1 divData">
-                <p class="infoTable">{{ individualSchedule.date }}</p>
-            </div>
-            <div class="col-1 divData">
-                <p class="infoTable">{{ individualSchedule.hour }}</p>
-            </div>
-            <div class="col-1 divData">
-                <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
-            </div>
-            <div class="col-2 divData">
-                <p class="infoTable">{{ individualSchedule.technician }}</p>
-            </div>
-            <div class="col-2 divData">
-                <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
-            </div>
-            <div class="col-2 divData">
-                <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
-            </div>
-            <div class="col-1 divData">
-                <p class="infoTable">{{ individualSchedule.tower.name }}</p>
-            </div>
-                
-            <div class="col-2">
-                <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                    <button class="botonEditar">
-                        <i class="fa-regular fa-pen-to-square"></i>
-                        Editar
-                    </button>
-                </a>
-                
-                <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
-                    <button class="botonEliminar">
-                        <i class="fa-solid fa-trash"></i>
-                        Eliminar
-                    </button>
-                </a>
-            </div>
+            <span class="botonEditar">{{ schedule.number }}</span>
+
+            {% if schedule.has_next %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+            {% endif %}
         </div>
-    {% endfor %}
+        <br> <br>
+        
     </div>
 
     <br> <br>
-    <h1 class="infoTable mt-3" >Proximamente se eliminara la columna de "Edificio" y "Dirección" para la vista de los Clientes</h1>
-    <h1 class="infoTable mt-3" >Proximamente se eliminara la columna de "Tecnico" para la vista de los Técnicos</h1>
+    <h1 class="infoTable mt-3" >Próximamente se eliminara la columna de "Edificio" y "Dirección" para la vista de los Clientes</h1>
+    <h1 class="infoTable mt-3" >Próximamente se eliminara la columna de "Tecnico" para la vista de los Técnicos</h1>
+    <h1 class="infoTable mt-3" >Próximamente se debe realizar una verificacion para que un tecnico no tenga 2 agendamientos en el mismo momento / hora</h1>
 </center>
 {% endblock %}

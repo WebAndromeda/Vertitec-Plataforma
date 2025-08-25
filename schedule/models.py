@@ -2,8 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from buildings.models import buildings, towers
 
-# Modelo para guardar el agendamiento
 class schedule(models.Model):
+    RECURRENCE_CHOICES = [
+        ('single', 'Individual'),
+        ('monthly', 'Mensual'),
+        # ('weekly', 'Semanal'),   # <-- En caso de necesitar mas en el futuro
+        # ('yearly', 'Anual'),
+    ]
+
     # Usuario que solicita el agendamiento (cliente)
     client = models.ForeignKey(
         User,
@@ -13,13 +19,19 @@ class schedule(models.Model):
     )
 
     tower = models.ForeignKey(towers, on_delete=models.CASCADE)
-    # address = models.ForeignKey(buildings, on_delete=models.CASCADE)
 
     date = models.DateField()
     hour = models.TimeField()
     status = models.BooleanField(default=False)
 
-    # Técnico asignado al agendamiento
+    # Recurrencia
+    recurrence = models.CharField(
+        max_length=20,
+        choices=RECURRENCE_CHOICES,
+        default='single'
+    )
+
+    # Técnico asignado
     technician = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -28,9 +40,8 @@ class schedule(models.Model):
     )
 
     def __str__(self):
-        return f"{self.date} - {self.hour} - {self.technician.username} - {self.tower.name}"
-    
-    # Se usa para poder mostrar la direccion de un edificio donde se requiera, sin necesidad de crear un campo en este modelo con un Foreign Key hacia el modelo "buildings"
+        return f"{self.date} - {self.hour} - {self.technician.username} - {self.tower.name} ({self.get_recurrence_display()})"
+
     @property
     def address(self):
         return self.client.buildings.address  # Gracias al OneToOne

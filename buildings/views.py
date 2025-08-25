@@ -7,23 +7,23 @@ from .models import buildings, towers
 
 
 # Autocompletado de nombre del edificio
-def user_suggestions(request):
-    query = request.GET.get('q', '')  # texto escrito
+def building_suggestionsB(request):
+    query = request.GET.get('q', '')  
     suggestions = []
 
     if query:
-        # Buscar por nombre de pila (first_name) en admins y técnicos
         usuarios = User.objects.filter(
             groups__name__in=['Cliente'],
             first_name__icontains=query
-        ).distinct()[:5]  # limitar a 5 resultados
+        ).distinct()[:5]
 
-        # Devolver solo el nombre real 
+        # DEVOLVER SOLO LISTA DE STRINGS (igual que en user_suggestions)
         suggestions = list(
             usuarios.values_list('first_name', flat=True)
         )
 
     return JsonResponse(suggestions, safe=False)
+
 
 # Vistas para CRUD de edificios / clientes 
 # Vista para listar los edificios / clientes
@@ -31,29 +31,22 @@ def user_suggestions(request):
 def listBuildings(request):
     form = UserFilterForm(request.GET or None)
 
-    # Partimos de todos los usuarios que estén en los grupos permitidos
+    # Filtrar solo los usuarios que sean clientes
     usuarios = User.objects.filter(groups__name__in=['Cliente']).distinct()
 
     if form.is_valid():
         nombre = form.cleaned_data.get('nombre')
 
         if nombre:
-            # Buscar por first_name en lugar de username
             usuarios = usuarios.filter(first_name__icontains=nombre)
 
-    if request.method == "GET":
-        buildingsList = buildings.objects.all()
-        
-        """ # Ver atributos a los que se puede acceder
-        for u in buildingsList:
-            print("---- Datos del edificio ----")
-            for field in buildings._meta.fields:
-                print(f"{field.name}: {getattr(u, field.name)}")
-        """
-        return render(request, 'listBuildings.html', {
-            "buildingList":buildingsList,
-            "form": form
-        })
+    # Filtrar los buildings asociados a esos usuarios
+    buildingsList = buildings.objects.filter(user__in=usuarios)
+
+    return render(request, 'listBuildings.html', {
+        "buildingList": buildingsList,
+        "form": form
+    })
         
 
 # Vista para crear un edificio / cliente
