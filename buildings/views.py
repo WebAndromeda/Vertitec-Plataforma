@@ -4,6 +4,7 @@ from utils.decorators import admin_required
 from django.contrib.auth.models import Group, User
 from .forms import  buildingsForm, towerForm, UserFilterForm
 from .models import buildings, towers
+from django.core.paginator import Paginator
 
 
 # Autocompletado de nombre del edificio
@@ -43,8 +44,13 @@ def listBuildings(request):
     # Filtrar los buildings asociados a esos usuarios
     buildingsList = buildings.objects.filter(user__in=usuarios)
 
+    # Paginación 
+    paginator = Paginator(buildingsList, 10)  # 2 edificios por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'listBuildings.html', {
-        "buildingList": buildingsList,
+        "buildingList": page_obj,
         "form": form
     })
         
@@ -180,10 +186,8 @@ def deleteTower(request):
 
     tower.delete()  # Eliminamos la torre
 
-    # Verificamos si el edificio ya no tiene torres
+    # Verificamos si el edificio ya no tiene torres, en caso de no tener, se crea una llamada "Torre Unica"
     if not towers.objects.filter(building=building).exists():
         towers.objects.create(building=building, name="Torre Única")
 
     return redirect(f'/listTowers?id={building.id}')
-
-# Y como harias aqui para que al momento de eliminar una torre, verifique si el listado de torres es vacio, y si es vacio que cree la torre unica

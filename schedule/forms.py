@@ -4,7 +4,7 @@ from .models import schedule
 from buildings.models import towers
 from buildings.models import buildings
 
-# Formulario para filtros del listado de agendamientos por rango de fechas, tecnico, estado, nombre del edificio
+# Formulario para filtros del listado de agendamientos por rango de fechas, tecnico, nombre del edificio y estado
 class ScheduleFilterForm(forms.Form):
     # Filtro por rango de fechas
     start_date = forms.DateField(

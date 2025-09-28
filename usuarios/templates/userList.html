@@ -188,6 +188,19 @@
             </div>
         </div>
     {% endfor %}
+    <br>
+    <div>
+        {% if usuarios.has_previous %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.previous_page_number }}" class="botonEditar">Anterior</a>
+        {% endif %}
+
+        <span class="botonEditar">{{ usuarios.number }}</span>
+
+        {% if usuarios.has_next %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.next_page_number }}" class="botonEditar">Siguiente</a>
+        {% endif %}
+    </div>
+    <br>
     </div>
 </center>
 

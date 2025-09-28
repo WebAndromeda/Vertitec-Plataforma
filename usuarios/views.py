@@ -5,6 +5,7 @@ from utils.decorators import admin_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from .forms import loginForm, UnifiedUserForm, UserFilterForm
+from django.core.paginator import Paginator
 
 
 # Autocompletado de nombre real
@@ -117,8 +118,13 @@ def userList(request):
         if rol and rol != 'cualquiera':
             usuarios = usuarios.filter(groups__name=rol)
 
+    # Paginación (2 usuarios por página)
+    paginator = Paginator(usuarios, 2) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)            
+
     return render(request, 'userList.html', {
-        "usuarios": usuarios,
+        "usuarios": page_obj,
         "form": form
     })
 

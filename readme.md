@@ -52,12 +52,12 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 - CRUD de repuestos
 - En el agendamiento, el campo de "Torres" depende de "Edificios"
 - Buscador de edificios
+- Paginación y filtros en listados
 
 ---
 
 ## 🚧 Funcionalidades pendientes
 
-- Paginación y filtros en listados
 - Mejorar setup_app para que cree todo lo necesario al desplegar
 - Mostrar errores en los formularios (Ej: Si el usuario coloca texto en un campo que espera numeros)
 - Vistas de tecnicos y clientes, solo deben ver informacion relevante (Ej: Los cliente nos deben ver el campo "Edificio" ya que siempre sera el mismo valor para ellos)
