@@ -19,13 +19,6 @@
     <nav class="navbar navbar-expand-lg navbar-dark custom-navbar">
       <div class="container-fluid">
         <img src="{% static '/css/Logo Vertitec.png' %}" class="img-Navbar" alt="">
-        <a class="navbar-brand titleNavbar" href="#">Mi Plataforma</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-          data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
-          aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
             <li class="nav-item ">
@@ -35,17 +28,21 @@
                 {% url 'userList' as profile_url%}
                 {% url 'listSchedule' as schedule_url%}
                 {% url 'listBuildings' as listBuildings_url%}
-
-                
+                {% url 'listPartsClient' as listPartsClient_url%}
+    
                 <a class="nav-link textLink {% if request.path == index_url %}active{% endif %}" href="{% url 'index' %}">Inicio</a>
             </li>
+
+            <!-- Si el usuario no ha ingresado -->
             {% if not user.is_authenticated %}
                 <li class="nav-item">
                   <a class="nav-link  textLink {% if request.path == login_url %}active{% endif %}" href="{% url 'login' %}">Iniciar sesión</a>
                 </li>
             {% endif %}
 
-            {% if user.is_authenticated %}
+            <!-- Si el usuario ya ingreso -->
+            {% if user.is_authenticated %}            
+                <!-- Si el usuario es administrador -->
                 {% if 'Administrador' in user_groups %}
                   <li class="nav-item">
                     <a class="nav-link textLink {% if request.path == profile_url %}active{% endif %}" href="{% url 'userList' %}">Usuarios</a>
@@ -60,6 +57,8 @@
                     <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
                   </li>
                 {% endif %}
+
+                <!-- Si el usuario es Tecnico -->
                 {% if 'Técnico' in user_groups %}
                   <li class="nav-item">
                     <a class="nav-link textLink {% if request.path == schedule_url %}active{% endif %}" href="{% url 'listSchedule' %}">Agendamiento</a>
@@ -68,10 +67,19 @@
                     <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
                   </li>
                 {% endif %}
+
+                <!-- Si el usuario es cliente -->
                 {% if 'Cliente' in user_groups %}
                   <li class="nav-item">
                     <a class="nav-link textLink {% if request.path == schedule_url %}active{% endif %}" href="{% url 'listSchedule' %}">Agendamiento</a>
                   </li>
+
+                  <li class="nav-item">
+                    <a class="nav-link textLink {% if request.path == parts_client_url %}active{% endif %}" href="{% url 'listPartsClient' %}">
+                      Mis Repuestos
+                    </a>
+                  </li>
+
                   <li class="nav-item">
                     <a class="nav-link textLink" href="{% url 'logout' %}">Cerrar Sesión</a>
                   </li>

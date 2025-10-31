@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, User
 from .forms import  buildingsForm, towerForm, UserFilterForm
 from .models import buildings, towers
 from django.core.paginator import Paginator
+from django.contrib import messages
 
 
 # Autocompletado de nombre del edificio
@@ -62,18 +63,21 @@ def createBuilding(request):
         form = buildingsForm(request.POST, is_update=False)
         if form.is_valid():
             building = form.save()  # building.user contiene el usuario creado
+            nombre_edificio = building.user.first_name  # Puedes cambiar a building.address si prefieres
 
-            # Crear automáticamente la torre "Torre Única"
-            towers.objects.create(building=building, name="Torre Única")
+            # 🔹 Crear automáticamente una torre con el nombre del edificio
+            nombre_torre = f"Torre {nombre_edificio}"
+            towers.objects.create(building=building, name=nombre_torre)
 
             # Asignar grupo 'Cliente'
             grupo_cliente = get_object_or_404(Group, name='Cliente')
             building.user.groups.add(grupo_cliente)
 
+            messages.success(request, f"✅ El edificio '{nombre_edificio}' fue creado correctamente con su {nombre_torre}.")
             return redirect('listBuildings')
         
         print(form.errors)
-        return HttpResponse("Si ves este mensaje, el formulario no fue valido")
+        return HttpResponse("Si ves este mensaje, el formulario no fue válido.")
     
     else:
         form = buildingsForm(is_update=False)
@@ -93,6 +97,9 @@ def editBuilding(request):
         form = buildingsForm(request.POST, instance=user, is_update=True, building_instance=building)
         if form.is_valid():
             form.save()
+            nombre_edificio = user.first_name;
+
+            messages.success(request, f"✅ El edificio '{nombre_edificio}' fue editado correctamente.")
             return redirect('listBuildings') 
     else:
         form = buildingsForm(instance=user, is_update=True, building_instance=building)
@@ -111,7 +118,11 @@ def deleteBuilding(request):
     if(user_id):
         # Si existe el id del usuario, se elimina
         user = User.objects.get(id=user_id)
+        nombre_edificio = user.username
         user.delete()
+
+        # Agregamos mensaje de éxito
+        messages.success(request, f"🗑️ El edificio '{nombre_edificio}' fue eliminado correctamente.")
 
         # Despues a eliminarse, se redirecciona al listado de edificios clientes
         return redirect('listBuildings')
@@ -119,62 +130,38 @@ def deleteBuilding(request):
 
 
 # Vistas para CRUD de Torres
-# Vista para añadir una torre
-@admin_required 
-def addTower(request, building_id):
-    building = get_object_or_404(buildings, id=building_id)
-
-    if request.method == 'POST':
-        form = towerForm(request.POST)
-        if form.is_valid():
-            tower = form.save(commit=False)
-            tower.building = building  # Asociar torre al edificio
-            tower.save()
-            return redirect(f'/listTowers?id={building_id}')  # Redireccionamos incluyendo el ID
-    else:
-        form = towerForm()
-        form.fields['building'].initial = building.id  
-
-    return render(request, 'createTower.html', {
-        'forms': form
-    })
-
-# Vista para editar una torre 
-@admin_required
-def editTowers(request):
-    tower_id = request.GET.get("id")
-    tower = get_object_or_404(towers, id=tower_id)
-
-    if request.method == "POST":
-        form = towerForm(request.POST, instance=tower)
-        if form.is_valid():
-            form.save()
-            return redirect('listBuildings')
-    else:
-        building_id = tower.building_id
-        form = towerForm()
-        form.fields['building'].initial = building_id
-        form.fields['name'].initial = tower.name
-
-        # form = towerForm(instance=tower) Se puede reemplazar lo anterior de el else con solo esta linea 
-
-    return render(request, 'createTower.html', {
-            "forms":form,
-            "is_update": True
-        })   
-
-
-# Vista para listar torres de un edificio en especifico (No todas las torres)
+# Vista para listar, editar y crear torres en una misma página, de un edificio en especifico (No todas las torres)
 @admin_required
 def listTowers(request):
-    if request.method == "GET":
-        client_id = request.GET.get("id")
+    client_id = request.GET.get("id")
+    building = get_object_or_404(buildings, id=client_id)
 
-        towerList = towers.objects.filter(building_id=client_id)
-        
-        return render(request, 'listTowers.html', {
-            "towerList":towerList
-        })
+    # 🟢 Si es POST, determinamos si es edición o creación
+    if request.method == "POST":
+        tower_id = request.POST.get("tower_id")
+        new_name = request.POST.get("name")
+
+        if tower_id:  # 🔹 Edición de torre existente
+            tower = get_object_or_404(towers, id=tower_id)
+            tower.name = new_name
+            tower.save()
+            messages.success(request, f"✅ La torre fue editada correctamente. ")
+
+        else:  # 🔹 Creación de nueva torre
+            if new_name.strip():
+                messages.success(request, f"✅ La torre fue creada correctamente. ")
+                towers.objects.create(building=building, name=new_name.strip())
+
+        # Redirigimos manteniendo el mismo edificio
+        return redirect(f'/listTowers?id={building.id}')
+
+    # 🟢 Si es GET, mostramos la lista
+    towerList = towers.objects.filter(building=building)
+
+    return render(request, 'listTowers.html', {
+        "towerList": towerList,
+        "building": building
+    })
     
 # Vista para eliminar una torre
 @admin_required
@@ -186,8 +173,11 @@ def deleteTower(request):
 
     tower.delete()  # Eliminamos la torre
 
-    # Verificamos si el edificio ya no tiene torres, en caso de no tener, se crea una llamada "Torre Unica"
+    # Verificamos si el edificio ya no tiene torres
     if not towers.objects.filter(building=building).exists():
-        towers.objects.create(building=building, name="Torre Única")
+        # 🔹 Crear una torre con el nombre del edificio
+        nombre_torre = f"Torre {building.user.first_name}"  # o building.user.username / building.address según prefieras
+        towers.objects.create(building=building, name=nombre_torre)
 
+    messages.success(request, f"🗑️ La torre fue eliminada correctamente.")
     return redirect(f'/listTowers?id={building.id}')

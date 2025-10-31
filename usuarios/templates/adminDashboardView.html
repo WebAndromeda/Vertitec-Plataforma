@@ -3,7 +3,7 @@
 
 {% block content %}
 <center>
-    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <h1 class="infoTable mt-3" >Perfil o inicio de la app</h1>
     <h1 class="infoTable mt-3" >Aun no se que poner aqui</h1>
 </center>

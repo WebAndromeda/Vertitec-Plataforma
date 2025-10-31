@@ -8,8 +8,6 @@ urlpatterns = [
     path('editBuilding', views.editBuilding, name="editBuilding"),
     path('deleteBuilding', views.deleteBuilding, name="deleteBuilding"),
     path('listTowers', views.listTowers, name="listTowers"),
-    path('addTower/<int:building_id>/', views.addTower, name='addTower'),
-    path('editTowers', views.editTowers, name="editTowers"),
     path('deleteTower', views.deleteTower, name="deleteTower"),
     path('building_suggestionsB/', views.building_suggestionsB, name="building_suggestionsB")
 ]

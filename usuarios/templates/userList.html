@@ -3,7 +3,7 @@
 
 {% block content %}
 <center>
-    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-6">
             <h1 class="titleText">Usuarios registrados</h1>
@@ -112,7 +112,15 @@
         </div>
     </div>
     
-
+    
+    <!--Notificaciones-->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+            {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
 
     <div class="tableData">
         <div class="row containerTitlesTable">

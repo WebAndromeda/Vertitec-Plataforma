@@ -3,27 +3,51 @@
 
 {% block content %}
 <center>
-    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-4">
             <h1 class="titleText">Agendamientos</h1>
         </div>
         <div class="col-8">
-            <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
-                <button class="botonCrear">
-                    <i class="fa-solid fa-plus"></i>
-                    Nuevos agendamiento
-                </button> 
-            </a> <br> <br>
-            <form method="get">
-                {{ form.start_date }}
-                {{ form.end_date }}
-                {{ form.technician }}
-                {{ form.building }}
-                {{ form.status }}
-                <ul id="suggestions" class="suggestions-list"></ul>
+            {% if user.groups.all.0.name == "Administrador" %}
+                <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
+                    <button class="botonCrear">
+                        <i class="fa-solid fa-plus"></i>
+                        Nuevo agendamiento
+                    </button> 
+                </a> <br> <br>
+                <form method="get">
+                    {{ form.start_date }}
+                    {{ form.end_date }}
+                    {{ form.technician }}
+                    {{ form.building }}
+                    {{ form.status }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
                 <button type="submit" class="botonEditar">Filtrar</button>
             </form>
+            {% endif %}
+
+            {% if user.groups.all.0.name == "Técnico" %}
+                <form method="get">
+                    {{ form.start_date }}
+                    {{ form.end_date }}
+                    {{ form.building }}
+                    {{ form.status }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
+                <button type="submit" class="botonEditar">Filtrar</button>
+            </form>
+            {% endif %}
+
+            {% if user.groups.all.0.name == "Cliente" %}
+                <form method="get">
+                    {{ form.start_date }}
+                    {{ form.end_date }}
+                    {{ form.status }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
+                <button type="submit" class="botonEditar">Filtrar</button>
+            </form>
+            {% endif %}
+
 
             <script>    
                 const input = document.querySelector('input[name="building"]');
@@ -114,97 +138,257 @@
     </div>
     
 
-    <!-- Tabla datos -->
-    <div class="tableData">
-        <!-- Titulos de la tabla -->
-        <div class="row containerTitlesTable">
-            <div class="col-1">
-                <p class="titlesTable">Fecha</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Hora</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Estado</p>
-            </div>
-            <div class="col-2">
-                <p class="titlesTable">Técnico</p>
-            </div>
-            <div class="col-2">
-                <p class="titlesTable">Edificio</p>
-            </div>
-            <div class="col-2">
-                <p class="titlesTable">Dirección</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Torre</p>
-            </div>
-            <div class="col-2">
-                <p class="titlesTable">Opciones</p>
-            </div>
-        </div>
-    
-        <!-- Datos -->
-        {% for individualSchedule in schedule %}
-            <div class="row containerInfoTable">
-                <div class="col-1 divData">
-                    <p class="infoTable">{{ individualSchedule.date }}</p>
+    <!-- Datos administradores -->
+    {% if user.groups.all.0.name == "Administrador" %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+                {{ message }}
                 </div>
-                <div class="col-1 divData">
-                    <p class="infoTable">{{ individualSchedule.hour }}</p>
+            {% endfor %}
+        {% endif %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
                 </div>
-                <div class="col-1 divData">
-                    <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                <div class="col-1">
+                    <p class="titlesTable">Hora</p>
                 </div>
-                <div class="col-2 divData">
-                    <p class="infoTable">{{ individualSchedule.technician }}</p>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
                 </div>
-                <div class="col-2 divData">
-                    <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
-                </div>
-                <div class="col-2 divData">
-                    <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
-                </div>
-                <div class="col-1 divData">
-                    <p class="infoTable">{{ individualSchedule.tower.name }}</p>
-                </div>
-                    
                 <div class="col-2">
-                    <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                        <button class="botonEditar">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                            Editar
-                        </button>
-                    </a>
-                    
-                    <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
-                        <button class="botonEliminar">
-                            <i class="fa-solid fa-trash"></i>
-                            Eliminar
-                        </button>
-                    </a>
+                    <p class="titlesTable">Técnico</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Edificio</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Dirección</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Opciones</p>
                 </div>
             </div>
-        {% endfor %}
-        <br>
-        <div>
-            {% if schedule.has_previous %}
-                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
-            {% endif %}
-
-            <span class="botonEditar">{{ schedule.number }}</span>
-
-            {% if schedule.has_next %}
-                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
-            {% endif %}
-        </div>
-        <br> <br>
         
-    </div>
+            <!-- Datos -->
+            {% for individualSchedule in schedule %}
+                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.date }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.hour }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.technician }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.tower.name }}</p>
+                    </div>
+                        
+                    <div class="col-2">
+                        <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                            <button class="botonEditar">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                                Editar
+                            </button>
+                        </a>
+                        
+                        <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
+                            <button class="botonEliminar">
+                                <i class="fa-solid fa-trash"></i>
+                                Eliminar
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+            <br>
+            <div>
+                {% if schedule.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ schedule.number }}</span>
+
+                {% if schedule.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+                {% endif %}
+            </div>
+            <br> <br>
+            
+        </div>
+    {% endif %}
+
+
+    <!-- Datos tecnicos -->
+    {% if user.groups.all.0.name == "Técnico" %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                </div>
+                <div class="col-3">
+                    <p class="titlesTable">Edificio</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Dirección</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Opciones</p>
+                </div>
+            </div>
+        
+            <!-- Datos -->
+            {% for individualSchedule in schedule %}
+                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.date }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.hour }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                    </div>
+                    <div class="col-3 divData">
+                        <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.client.buildings.address }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.tower.name }}</p>
+                    </div>
+                        
+                    <div class="col-2">
+                        <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                            <button class="botonEditar">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                                Empezar
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+            <br>
+            <div>
+                {% if schedule.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ schedule.number }}</span>
+
+                {% if schedule.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+                {% endif %}
+            </div>
+            <br> <br>
+            
+        </div>
+    {% endif %}
+
+
+    <!-- Datos clientes -->
+    {% if user.groups.all.0.name == "Cliente" %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-3">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Hora</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                </div>
+                <div class="col-3">
+                    <p class="titlesTable">Técnico</p>
+                </div>
+                <div class="col-3">
+                    <p class="titlesTable">Torre</p>
+                </div>
+            </div>
+        
+            <!-- Datos -->
+            {% for individualSchedule in schedule %}
+                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
+                    <div class="col-3 divData">
+                        <p class="infoTable">{{ individualSchedule.date }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.hour }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                    </div>
+                    <div class="col-3 divData">
+                        <p class="infoTable">{{ individualSchedule.technician }}</p>
+                    </div>
+                    <div class="col-3 divData">
+                        <p class="infoTable">{{ individualSchedule.tower.name }}</p>
+                    </div>
+                        
+                    
+                </div>
+            {% empty %}
+
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay agendamientos registrados para tu edificio.
+                        </p>
+                    </div>
+                </div>  
+
+            {% endfor %}
+            <br>
+            <div>
+                {% if schedule.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ schedule.number }}</span>
+
+                {% if schedule.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+                {% endif %}
+            </div>
+            <br> <br>
+            
+        </div>
+    {% endif %}
+
 
     <br> <br>
-    <h1 class="infoTable mt-3" >Próximamente se eliminara la columna de "Edificio" y "Dirección" para la vista de los Clientes</h1>
-    <h1 class="infoTable mt-3" >Próximamente se eliminara la columna de "Tecnico" para la vista de los Técnicos</h1>
-    <h1 class="infoTable mt-3" >Próximamente se debe realizar una verificacion para que un tecnico no tenga 2 agendamientos en el mismo momento / hora</h1>
 </center>
 {% endblock %}

@@ -29,15 +29,22 @@ class UserFilterForm(forms.Form):
 
 # Formulario para crear / editar un usuario
 class UnifiedUserForm(forms.ModelForm):
+    # Campos adicionales
     password1 = forms.CharField(
         label='Contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña', 'class': 'inputForm'})
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Contraseña',
+            'class': 'inputForm'
+        })
     )
     password2 = forms.CharField(
         label='Confirmar contraseña',
         required=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Confirmar contraseña', 'class': 'inputForm'})
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Confirmar contraseña',
+            'class': 'inputForm'
+        })
     )
 
     ROLE_CHOICES = [
@@ -67,30 +74,46 @@ class UnifiedUserForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.is_update:
+            # Campos no obligatorios al editar
             self.fields['password1'].required = False
             self.fields['password2'].required = False
 
+            # Ocultar el campo de rol en edición
             current_group = self.instance.groups.first()
             if current_group:
                 if current_group.name == 'Administrador':
                     self.fields['role'].initial = 'admin'
                 elif current_group.name == 'Técnico':
                     self.fields['role'].initial = 'tecnico'
-            # ✅ Hacemos que no sea obligatorio en edición
-            self.fields['role'].required = False
+
             self.fields['role'].widget = forms.HiddenInput()
+            self.fields['role'].required = False
+            self.fields['password1'].help_text = "Deja este campo vacío si no deseas cambiar la contraseña."
         else:
+            # En creación todos los campos son obligatorios
+            for field_name in self.fields:
+                self.fields[field_name].required = True
+
             self.fields['password1'].required = True
             self.fields['password2'].required = True
+            self.fields['password1'].help_text = "Introduce una contraseña para el nuevo usuario."
 
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
 
+        if not self.is_update:
+            # En creación ambas contraseñas deben estar presentes
+            if not password1 or not password2:
+                raise forms.ValidationError("Debes ingresar y confirmar la contraseña para crear un usuario nuevo.")
+
+        # Si se ingresan, deben coincidir
         if password1 or password2:
             if password1 != password2:
                 raise forms.ValidationError("Las contraseñas no coinciden.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -102,7 +125,7 @@ class UnifiedUserForm(forms.ModelForm):
         if commit:
             user.save()
 
-            # Asignar grupo solo si se crea o si role está en el POST
+            # Asignar grupo según el rol solo en creación
             role = self.cleaned_data.get('role')
             if role:
                 if role == 'admin':

@@ -3,60 +3,70 @@
 
 {% block content %}
 <center>
-    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <h1 class="infoTable mt-3">¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
+
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-6">
             <h1 class="titleText">Torres de {{ towerList.0.building.user.first_name }}</h1>
         </div>
-        <div class="col-6">
-            <a href="{% url 'addTower' towerList.0.building.id %}"> <!-- Crear torre para este cliente -->
-                <button class="botonCrear">
-                    <i class="fa-solid fa-plus"></i>
-                    Nueva torre
-                </button> <br> <br>
-            </a>
-        </div>
     </div>
-    
 
-    <!-- Titulos de la tabla -->
+    <!--Notificaciones-->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+            {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Títulos de la tabla -->
     <div class="tableData">
         <div class="row containerTitlesTable">
-            <div class="col-8">
+            <div class="col-12">
                 <p class="titlesTable">Torres</p>
             </div>
-            <div class="col-4">
-                <p class="titlesTable">Opciones</p>
-            </div>
         </div>
-    
 
-    {% for tower in towerList %}
-        <div class="row containerInfoTable">
-            <!--Torres-->            
-            <div class="col-8 divData">
-                <p class="infoTable">
-                    {{ tower.name }}
-                </p>
-            </div>
-            <!--Opciones-->    
-            <div class="col-4">
-                <a href="{% url 'editTowers' %}?id={{ tower.id }}"> <!-- Editar Torre -->
-                    <button class="botonEditar">
-                        <i class="fa-regular fa-pen-to-square"></i>
-                        Editar
+        <!-- Listado de torres existentes -->
+        {% for tower in towerList %}
+        <div class="row containerInfoTable align-items-center">
+            <div class="col-12 divData">
+                <form method="POST" action="{% url 'listTowers' %}?id={{ tower.building.id }}" class="form-inline" style="display:inline-flex; align-items:center; gap:8px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="tower_id" value="{{ tower.id }}">
+                    <input type="text" name="name" value="{{ tower.name }}" class="inputForm" required>
+                    <button type="submit" class="botonCrear">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar
                     </button>
-                </a>
-                
-                <a href="{% url 'deleteTower' %}?id={{ tower.id }}" onclick="return confirm('¿Estás seguro de eliminar esta torre?');">  <!-- Eliminar torre -->
-                    <button class="botonEliminar">
-                        <i class="fa-solid fa-trash"></i>
-                        Eliminar
+                </form>
+
+                <!-- Botón eliminar (fuera del form) -->
+                <a href="{% url 'deleteTower' %}?id={{ tower.id }}" onclick="return confirm('¿Estás seguro de eliminar esta torre?');">
+                    <button class="botonEliminar" type="button">
+                        <i class="fa-solid fa-trash"></i> Eliminar
                     </button>
                 </a>
             </div>
         </div>
-    {% endfor %}        
+        {% endfor %}
+
+        <!-- Formulario para crear una nueva torre -->
+        <div class="row containerInfoTable align-items-center mt-3">
+            <div class="col-12 divData">
+                <form method="POST" action="{% url 'listTowers' %}?id={{ building.id }}" class="form-inline" style="display:inline-flex; align-items:center; gap:8px;">
+                    {% csrf_token %}
+                    <!-- tower_id vacío indica creación -->
+                    <input type="hidden" name="tower_id" value="">
+                    <input type="text" name="name" placeholder="Nombre de nueva torre" class="inputForm" required>
+                    <button type="submit" class="botonCrear">
+                        <i class="fa-solid fa-plus"></i> Crear
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
 </center>
+
 {% endblock %}

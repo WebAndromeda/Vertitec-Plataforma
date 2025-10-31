@@ -1,12 +1,18 @@
 from django.db import models
 from django.contrib.auth.models import User
-from buildings.models import towers  # si tienes torres como modelo separado
+from buildings.models import towers 
 
 class replacementParts(models.Model):
-    nameItem = models.CharField(max_length=255)  
-    price = models.DecimalField(max_digits=12, decimal_places=2)  
-    approved = models.BooleanField(default=False) 
-    
+    STATUS_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+
+    nameItem = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    approved_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendiente')
+
     statusInstall = [
         ('por_instalar', 'Por instalar'),
         ('instalado', 'Instalado'),
@@ -20,7 +26,7 @@ class replacementParts(models.Model):
     status_Payment = models.CharField(max_length=20, choices=statusPayment, default='falta_pago')
 
     tower = models.ForeignKey(towers, on_delete=models.CASCADE, related_name="repuestos")
-    building = models.ForeignKey(User, on_delete=models.CASCADE, related_name="repuestos")  # 🔹 Ahora es un User
+    building = models.ForeignKey(User, on_delete=models.CASCADE, related_name="repuestos")  # 🔹 Relación con el usuario
 
     def __str__(self):
         return f"{self.nameItem} - Torre {self.tower.name}"

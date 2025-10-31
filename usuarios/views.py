@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from .forms import loginForm, UnifiedUserForm, UserFilterForm
 from django.core.paginator import Paginator
+from django.contrib import messages
 
 
 # Autocompletado de nombre real
@@ -33,28 +34,40 @@ def user_suggestions(request):
 def index(request):
     return render(request, 'index.html')
 
+
 # Vistas para CRUD de usuarios
 # Vista para crear un usuario  
 @admin_required
 def createUser(request):
     if request.method == "POST":
-        form = UnifiedUserForm(request.POST)
+        form = UnifiedUserForm(request.POST, is_update=False)
         if form.is_valid():
-            form.save()
-            print("Usuario creado correctamente.")
-            return redirect("userList")  # Cambia por la URL que desees
+            user = form.save()  # Guardamos el usuario y lo almacenamos en una variable
+            nombre = user.first_name or user.username  # Usamos el nombre si existe, o el username como respaldo
+
+            # Mensaje de éxito
+            messages.success(request, f"✅ El usuario '{nombre}' fue creado correctamente.")
+            return redirect("userList")
+        else:
+            return render(request, 'createUser.html', {
+                'form': form,
+                'update': False,
+                'error_message': "❌ Por favor corrige los errores marcados antes de continuar."
+            })
     else:
         form = UnifiedUserForm(is_update=False)
-
         return render(request, 'createUser.html', {
-            'forms': form,
+            'form': form,
             'update': False
         })
 
+
+# Vista para editar un usuario  
 @admin_required
 def editUser(request):
     user_id = request.GET.get("id")
     user = get_object_or_404(User, id=user_id)
+    nombre = user.username
 
     if request.method == "POST":
         # Guardamos el grupo actual para mantenerlo si no se envía en POST
@@ -72,12 +85,13 @@ def editUser(request):
             else:
                 form.save(commit=True)
 
+            messages.success(request, f"✅ El usuario '{nombre}' fue editado correctamente. ")
             return redirect('userList') 
     else:
         form = UnifiedUserForm(instance=user, is_update=True)
 
     return render(request, 'createUser.html', {
-        'forms': form,
+        'form': form,
         'update': True
     })
 
@@ -86,16 +100,16 @@ def editUser(request):
 def deleteUser(request):
     user_id = request.GET.get("id")
 
-    if(user_id):
-        # Si existe el id del usuario, se elimina
+    if user_id:
         user = User.objects.get(id=user_id)
+        nombre = user.username
         user.delete()
 
-        # Despues a eliminarse, se redirecciona al listado de usuarios
-        usuarios = User.objects.all()
-        return render(request, 'userList.html',{
-            "usuarios":usuarios
-        })
+        # Agregamos mensaje de éxito
+        messages.success(request, f"🗑️ Usuario '{nombre}' eliminado correctamente.")
+
+        # Redirigimos al listado
+        return redirect('userList')
 
 
 # Vista para listar los usuarios
@@ -119,7 +133,7 @@ def userList(request):
             usuarios = usuarios.filter(groups__name=rol)
 
     # Paginación (2 usuarios por página)
-    paginator = Paginator(usuarios, 2) 
+    paginator = Paginator(usuarios, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)            
 
@@ -131,17 +145,17 @@ def userList(request):
 
 
 # Vistas para inicio y cierre de sesión
-# Vista para iniciar sesión
 def login(request):
     if request.user.is_authenticated:
         return redirect('index') 
+
     if request.method == "GET":
         return render(request, 'login.html', {
-            "form":loginForm()
+            "form": loginForm()
         })
     else:
         form = loginForm(request.POST)
-        print("Entro a la vista correcta");
+        print("Entro a la vista correcta")
 
         if form.is_valid():
             username = form.cleaned_data['username']
@@ -151,14 +165,18 @@ def login(request):
 
             if user is not None:
                 auth_login(request, user)
-                #return redirect('about')  # Cambia esto por la vista a la que quieres redirigir
-                return redirect('login')
+                return redirect('index') 
             else:
-                return HttpResponse("<h1>Los datos son incorrectos</h1>")    
-            
-        # 🔴 Aquí estás cubriendo el caso en el que el formulario no es válido
+                return render(request, 'login.html', {
+                    "form": form,
+                    "error": "Nombre de usuario o contraseña incorrectos."
+                })
+
         print("Errores del formulario:", form.errors)
-        return HttpResponse("<H1>No fue validado el formulario<h1>");
+        return render(request, 'login.html', {
+            "form": form,
+            "error": "Por favor completa todos los campos correctamente."
+        })
 
 # Vista para cerrar sesión
 @login_required    

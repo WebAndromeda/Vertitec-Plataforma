@@ -18,6 +18,9 @@
 
             <a href="">¿Olvidaste tu contraseña?</a>
         </form>
+                {% if error %}
+            <p style="color: red; margin-top: 10px;">{{ error }}</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

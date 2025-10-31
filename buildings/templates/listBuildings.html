@@ -3,7 +3,7 @@
 
 {% block content %}
 <center>
-    <h1 class="infoTable mt-3" >¡Hola {{ user.username }}! Bienvenido de nuevo - Rol: Administrador</h1>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-6">
             <h1 class="titleText">Edificios / Clientes</h1>
@@ -118,6 +118,15 @@
         </div>
     </div>
     
+    <!--Notificaciones-->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success" style="margin-bottom: 10px;">
+            {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
 
     <!-- Titulos de la tabla -->
     <div class="tableData">
@@ -187,7 +196,7 @@
                         Repuestos
                     </button>
                 </a>                
-                <a href="{% url 'deleteBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('¿Estás seguro de eliminar este edificio / cliente?');"> <!-- Eliminar cliente -->
+                <a href="{% url 'deleteBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('⚠️ Esta acción desactivará el edificio/usuario. Ya no podrá iniciar sesión ni aparecer en formularios, pero sus registros se conservarán. ¿Deseas continuar?');"> <!-- Eliminar cliente -->
                     <button class="botonEliminar">
                         <i class="fa-solid fa-trash"></i>
                         Eliminar

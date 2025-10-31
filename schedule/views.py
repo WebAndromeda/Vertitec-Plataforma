@@ -8,6 +8,10 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from buildings.models import buildings, towers
 from django.core.paginator import Paginator
+from django.contrib import messages
+from django.utils import timezone
+from datetime import datetime, timedelta
+
 
 # Crear opciones para seleccionar la torre del edificio seleccionado
 def tower_suggestions(request):
@@ -115,13 +119,59 @@ def createSchedule(request):
         if form.is_valid():
             sched = form.save(commit=False)
 
-            # Guardamos el agendamiento inicial
+            # Hora y fecha combinadas del nuevo agendamiento
+            new_datetime = timezone.make_aware(
+                timezone.datetime.combine(sched.date, sched.hour)
+            )
+
+            # Buscar agendamientos del mismo técnico el mismo día
+            agendamientos_mismo_dia = schedule.objects.filter(
+                technician=sched.technician,
+                date=sched.date
+            )
+
+            advertencias = []
+            for ag in agendamientos_mismo_dia:
+                ag_datetime = timezone.make_aware(
+                    timezone.datetime.combine(ag.date, ag.hour)
+                )
+                diff = abs((new_datetime - ag_datetime).total_seconds())
+
+                # Si ya hay un agendamiento exactamente a la misma hora
+                if diff == 0:
+                    messages.error(request, "❌ Ya existe un agendamiento a esa misma hora.")
+                    return render(request, "createSchedule.html", {
+                        "forms": form,
+                        "update": False
+                    })
+
+                # Si hay un agendamiento a menos de una hora, lo añadimos a la lista de advertencias
+                if diff < 3600:
+                    advertencias.append(ag.hour.strftime("%H:%M"))
+
+            # Si existen advertencias (citas cercanas)
+            if advertencias:
+                if "confirm_warning" not in request.POST:
+                    warning_text = (
+                        f"⚠️ El técnico tiene otro agendamiento a menos de una hora "
+                        f"(Exactamente a las {', '.join(advertencias)}). "
+                        "¿Deseas continuar de todos modos?"
+                    )
+                    messages.warning(request, warning_text)
+                    return render(request, "createSchedule.html", {
+                        "forms": form,
+                        "confirm_warning": True,
+                        "warning_text": warning_text,
+                        "update": False
+                    })
+
+            # Si no hay conflictos o el usuario confirmó, se guarda
             sched.save()
 
-            # Si es recurrente mensual, creamos futuras repeticiones
+            # Si es recurrente mensual, crear futuras repeticiones
             if sched.recurrence == "monthly":
                 base_date = sched.date
-                for i in range(1, 6):  # crea 6 meses adicionales, ajusta según necesidad
+                for i in range(1, 6):  # crea 6 meses adicionales
                     try:
                         new_date = base_date + relativedelta(months=i)
                         schedule.objects.create(
@@ -134,8 +184,8 @@ def createSchedule(request):
                             technician=sched.technician
                         )
                     except ValueError:
-                        # Si el día no existe (ej: 30 febrero), ajustamos al último día del mes
-                        new_date = (base_date + relativedelta(months=i, day=31))
+                        # Ajuste por meses sin ese día (ej: 30 feb)
+                        new_date = base_date + relativedelta(months=i, day=31)
                         schedule.objects.create(
                             client=sched.client,
                             tower=sched.tower,
@@ -146,13 +196,14 @@ def createSchedule(request):
                             technician=sched.technician
                         )
 
-            return redirect('listSchedule')
+            messages.success(request, "✅ Agendamiento creado correctamente.")
+            return redirect("listSchedule")
     else:
         form = ScheduleForm()
 
-    return render(request, 'createSchedule.html', {
-        'forms': form,
-        'update': False
+    return render(request, "createSchedule.html", {
+        "forms": form,
+        "update": False
     })
 
 
@@ -166,6 +217,7 @@ def editSchedule(request):
         form = ScheduleForm(request.POST, instance=scheduleEdit)
         if form.is_valid():
             form.save()
+            messages.success(request, f"✅ El agendamiento fue editado correctamente. ")
             return redirect('listSchedule')
     else:
         # Aquí asignamos manualmente initial para el campo 'client'
@@ -188,5 +240,7 @@ def deleteSchedule(request):
     if schedule_id:
         scheduleDelete = get_object_or_404(schedule, id=schedule_id)
         scheduleDelete.delete()
+
+    messages.success(request, f"🗑️ El agendamiento fue eliminado correctamente. ")
 
     return redirect('listSchedule')

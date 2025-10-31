@@ -25,6 +25,11 @@
     --darkcolor4: black;     
     --darkcolor5: white;
     --darkcolor6: rgb(219, 219, 219);
+    --darkcolor7: rgb(247, 196, 196);
+    --darkcolor8: rgb(223, 168, 168);
+    --darkcolor9: rgb(241, 255, 230);
+    --darkcolor10: rgb(193, 215, 175);
+
     --colorInputs: white;
     --colordivTable: black; 
     --navbarColor:black;
@@ -43,6 +48,10 @@
     --darkcolor4: white;  
     --darkcolor5: white;
     --darkcolor6: #10171f;
+    --darkcolor7: rgb(45, 24, 28);
+    --darkcolor8: rgb(22, 14, 15);
+    --darkcolor9: rgb(33, 45, 24);
+    --darkcolor10: rgb(18, 24, 14);
     --colorInputs: #0b141b;
     --navbarColor:white;
     --colordivTable: rgba(255, 255, 255, 0.219); 
@@ -120,6 +129,28 @@ body{
         max-width: 80%;
     }
 }
+
+.divNotificaciones {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeSlideIn 1.2s ease-out forwards;
+    border-radius: 8px;
+    padding: 10px 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de entrada */
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .titleText{
     font-family: 'AvenirLTStd-Book';
     color: var(--darkcolor4);
@@ -198,6 +229,7 @@ body{
     color: var(--darkcolor4); 
     width: 100%;
 }
+
 .containerInfoTable::before {
     content: "";
     position: absolute;
@@ -210,6 +242,52 @@ body{
 }
 .containerInfoTable:hover {
     background-color: var(--darkcolor6);
+    transition: background-color 0.2s; /* Aplica la animación siempre */
+}
+.containerInfoTable2{
+    position: relative; /* Establece el contexto de posicionamiento */
+    border-radius: 0px;
+    border-style: none;
+    background-color: var(--darkcolor7);
+    padding: 0.7em;
+    color: var(--darkcolor4); 
+    width: 100%;
+}
+.containerInfoTable2::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 2%; /* Comienza desde el 10% del ancho */
+    width: 95%; /* El ancho del borde es el 80% del contenedor */
+    height: 1px; /* Ajusta el grosor del borde */
+    
+    background-color: var(--colordivTable); /* Color del borde */
+}
+.containerInfoTable2:hover {
+    background-color: var(--darkcolor8);
+    transition: background-color 0.2s; /* Aplica la animación siempre */
+}
+.containerInfoTable3{
+    position: relative; /* Establece el contexto de posicionamiento */
+    border-radius: 0px;
+    border-style: none;
+    background-color: var(--darkcolor9);
+    padding: 0.7em;
+    color: var(--darkcolor4); 
+    width: 100%;
+}
+.containerInfoTable3::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 2%; /* Comienza desde el 10% del ancho */
+    width: 95%; /* El ancho del borde es el 80% del contenedor */
+    height: 1px; /* Ajusta el grosor del borde */
+    
+    background-color: var(--colordivTable); /* Color del borde */
+}
+.containerInfoTable3:hover {
+    background-color: var(--darkcolor10);
     transition: background-color 0.2s; /* Aplica la animación siempre */
 }
 
@@ -306,6 +384,7 @@ body{
     display: flex;
     align-items: center;   /* Vertical */
     justify-content: center; /* Horizontal */
+    word-break: break-all;
 }
 
 /*Footer*/
@@ -340,4 +419,23 @@ footer {
 
 footer.bg-gradient {
   background: var(--gradientFooter) !important;
+}
+
+
+
+
+.errorlist {
+    color: #dc3545;           /* rojo tipo Bootstrap */
+    font-size: 14px;
+    list-style: none;         /* quita los puntos */
+    padding-left: 0;
+    margin-top: 5px;
+    margin-bottom: 0;
+}
+
+.errorlist li {
+    background-color: #ffe6e6;
+    border-left: 4px solid #dc3545;
+    padding: 6px 10px;
+    border-radius: 4px;
 }
