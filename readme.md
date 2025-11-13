@@ -53,6 +53,7 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 - En el agendamiento, el campo de "Torres" depende de "Edificios"
 - Buscador de edificios
 - Paginación y filtros en listados
+- Vistas de tecnicos y clientes, solo deben ver informacion relevante (Ej: Los cliente nos deben ver el campo "Edificio" ya que siempre sera el mismo valor para ellos)
 
 ---
 
@@ -60,7 +61,6 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 
 - Mejorar setup_app para que cree todo lo necesario al desplegar
 - Mostrar errores en los formularios (Ej: Si el usuario coloca texto en un campo que espera numeros)
-- Vistas de tecnicos y clientes, solo deben ver informacion relevante (Ej: Los cliente nos deben ver el campo "Edificio" ya que siempre sera el mismo valor para ellos)
 - Los listados al ser vacios deben tener un texto como "No hay datos registrados" en lugar de aparecer vacios
 - Cambiar orden en el que se envian los datos (Ej: Mostrar agendamiento por fecha actual o mas cercana)
 - Añadir al agendamiento si pertenece a ascensor o puertas
@@ -115,6 +115,10 @@ Accede a la plataforma desde: http://localhost:8000
 Usuarios de prueba creados automáticamente por el comando setup_app:
 
 Superusuario: root / chatgpt22
+> Este usuario solo accede al panel de administración de Django, no a la plataforma principal.
+> Si se intenta ingresar por el enlace normal, no tendrá acciones disponibles.
+> Para acceder al panel de administración, añade al enlace de acceso a la plataforma: /admin
+> Desde allí, el superusuario puede modificar usuarios y edificios, siendo además el único que puede eliminar técnicos o edificios, así como editar su información.
 
 Administrador: admin / chatgpt22
 

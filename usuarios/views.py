@@ -95,21 +95,36 @@ def editUser(request):
         'update': True
     })
 
-# Vista para eliminar un usuario  
+
+# Vista para desactivar un usuario (NO ES BORRARLO, esto solo lo puede hacer el superusuario desde /admin)
 @admin_required
-def deleteUser(request):
+def deactivateUser(request):
     user_id = request.GET.get("id")
 
     if user_id:
         user = User.objects.get(id=user_id)
         nombre = user.username
-        user.delete()
 
-        # Agregamos mensaje de éxito
-        messages.success(request, f"🗑️ Usuario '{nombre}' eliminado correctamente.")
+        # 🔹 Desactivar usuario
+        user.is_active = False
+        user.save()
+        messages.success(request, f"🗑️ Usuario '{nombre}' desactivado correctamente.")
 
-        # Redirigimos al listado
         return redirect('userList')
+    
+    
+# Vista para reactivar un usuario
+@admin_required
+def activateUser(request):
+    user_id = request.GET.get("id")
+
+    if user_id:
+        user = User.objects.get(id=user_id)
+        user.is_active = True
+        user.save()
+        messages.success(request, f"✅ Usuario '{user.username}' activado correctamente.")
+
+    return redirect('userList')    
 
 
 # Vista para listar los usuarios
@@ -117,25 +132,35 @@ def deleteUser(request):
 def userList(request):
     form = UserFilterForm(request.GET or None)
 
-    # Partimos de todos los usuarios que estén en los grupos permitidos
+    # Todos los usuarios en grupos permitidos
     usuarios = User.objects.filter(groups__name__in=['Administrador', 'Técnico']).distinct()
+
+    # 🔹 Filtrar por activos por defecto si no hay GET
+    if not request.GET.get('estado'):
+        usuarios = usuarios.filter(is_active=True)
 
     if form.is_valid():
         nombre = form.cleaned_data.get('nombre')
-        rol = form.cleaned_data.get('rol')  # Nuevo campo en el formulario
+        rol = form.cleaned_data.get('rol')
+        estado = form.cleaned_data.get('estado')
 
         if nombre:
-            # Buscar por first_name en lugar de username
             usuarios = usuarios.filter(first_name__icontains=nombre)
 
-        # Filtrar por rol solo si no es "Cualquiera"
-        if rol and rol != 'cualquiera':
+        if rol and rol != '':
             usuarios = usuarios.filter(groups__name=rol)
 
-    # Paginación (2 usuarios por página)
-    paginator = Paginator(usuarios, 10) 
+        # 🔹 Filtro según lo seleccionado
+        if estado == 'activo':
+            usuarios = usuarios.filter(is_active=True)
+        elif estado == 'inactivo':
+            usuarios = usuarios.filter(is_active=False)
+        # 'todos' => no filtramos
+
+    # Paginación
+    paginator = Paginator(usuarios, 10)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)            
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'userList.html', {
         "usuarios": page_obj,
@@ -143,8 +168,8 @@ def userList(request):
     })
 
 
-
 # Vistas para inicio y cierre de sesión
+# Vista para iniciar sesión
 def login(request):
     if request.user.is_authenticated:
         return redirect('index') 

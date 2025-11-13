@@ -25,6 +25,17 @@ class UserFilterForm(forms.Form):
         ],
         widget=forms.Select(attrs={'class': 'inputForm'})
     )
+    estado = forms.ChoiceField(
+        required=False,
+        label='Estado',
+        choices=[
+            ('activo', 'Activos'),
+            ('inactivo', 'Inactivos'),
+            ('todos', 'Todos')
+        ],
+        initial='activo',
+        widget=forms.Select(attrs={'class': 'inputForm'})
+    )
 
 
 # Formulario para crear / editar un usuario

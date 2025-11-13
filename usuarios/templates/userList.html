@@ -16,11 +16,13 @@
                 </button> <br> <br>
             </a>
 
+            <!-- Filtros -->
             <form method="get">
                 {% csrf_token %}
                 {{ form.nombre }}
                 <ul id="suggestions" class="suggestions-list"></ul>
                 {{ form.rol }}
+                {{ form.estado }}
                 <button type="submit" class="botonEditar">Buscar</button>
             </form>
 
@@ -146,10 +148,13 @@
     
 
     {% for user in usuarios %}
-        <div class="row containerInfoTable">
+        <div class="row containerInfoTable {% if not user.is_active %}usuarioDesactivado{% endif %}">
+            <!-- Nombre -->
             <div class="col-2 divData">
-                <p class="infoTable">{{user.first_name }}</p>
+                <p class="infoTable">{{ user.first_name }}</p>
             </div>
+
+            <!-- Apellido -->
             <div class="col-2 divData">
                 {% if user.last_name %}
                     <p class="infoTable">{{ user.last_name }}</p>
@@ -157,6 +162,8 @@
                     <p class="infoTable">No registrado</p>
                 {% endif %}
             </div>
+
+            <!-- Usuario -->
             <div class="col-2 divData">
                 {% if user.username %}
                     <p class="infoTable">{{ user.username }}</p>
@@ -164,35 +171,51 @@
                     <p class="infoTable">No registrado</p>
                 {% endif %}
             </div>
+
+            <!-- Correo -->
             <div class="col-2 divData">
                 {% if user.email %}
-                    <p class="infoTable">{{ user.email}}</p>
+                    <p class="infoTable">{{ user.email }}</p>
                 {% else %}
                     <p class="infoTable">No registrado</p>
                 {% endif %}
             </div>
+
+            <!-- Grupo -->
             <div class="col-2 divData">
                 {% if user.groups.first %}
                     <p class="infoTable">{{ user.groups.first.name }}</p>
                 {% else %}
                     <p class="infoTable">No asignado</p>
                 {% endif %}
-                
             </div>
+
+            <!-- Botones -->
             <div class="col-2">
-                <a href="{% url 'editUser' %}?id={{ user.id }}"> <!-- Editar usuario -->
+                <!-- Editar usuario -->
+                <a href="{% url 'editUser' %}?id={{ user.id }}">
                     <button class="botonEditar">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Editar
                     </button>
                 </a>
-                
-                <a href="{% url 'deleteUser' %}?id={{ user.id }}" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">
-                    <button class="botonEliminar">
-                        <i class="fa-solid fa-trash"></i>
-                        Eliminar
-                    </button>
-                </a>
+
+                <!-- Activar / Desactivar según estado -->
+                {% if user.is_active %}
+                    <a href="{% url 'deactivateUser' %}?id={{ user.id }}" onclick="return confirm('⚠️ Esta acción desactivará el usuario. Ya no podrá iniciar sesión ni aparecer en formularios, pero sus registros se conservarán. ¿Deseas continuar?');">
+                        <button class="botonEliminar">
+                            <i class="fa-solid fa-user-slash"></i>
+                            Desactivar
+                        </button>
+                    </a>
+                {% else %}
+                    <a href="{% url 'activateUser' %}?id={{ user.id }}" onclick="return confirm('¿Deseas activar este usuario nuevamente?');">
+                        <button class="botonCrear">
+                            <i class="fa-solid fa-user-check"></i>
+                            Activar
+                        </button>
+                    </a>
+                {% endif %}
             </div>
         </div>
     {% endfor %}

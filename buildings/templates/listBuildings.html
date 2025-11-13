@@ -20,12 +20,15 @@
                     <i class="fa-regular fa-file"></i>
                     Ver Repuestos
                 </button>
-            </a> <br> <br>   
+            </a> 
+            <br> <br>   
 
+            <!--Filtros-->
             <form method="get">
                 {% csrf_token %}
                 {{ form.nombre }}
                 <ul id="suggestions" class="suggestions-list"></ul>
+                {{ form.estado }}
                 <button type="submit" class="botonEditar">Buscar</button>
             </form>
 
@@ -81,7 +84,6 @@
                 /* Contenedor del formulario */
                 form {
                     position: relative;
-                    max-width: 300px;
                 }
             
                 /* Lista de sugerencias */
@@ -153,55 +155,80 @@
     
 
     {% for individualbuildingList in buildingList %}
-        <div class="row containerInfoTable">
+        <div class="row containerInfoTable {% if not individualbuildingList.user.is_active %}usuarioDesactivado{% endif %}">
+            <!-- Nombre -->
             <div class="col-2 divData">
                 <p class="infoTable">{{ individualbuildingList.user.first_name }}</p>
             </div>
+
+            <!-- Usuario -->
             <div class="col-1 divData">
                 <p class="infoTable">{{ individualbuildingList.user.username }}</p>
             </div>
+
+            <!-- Correo -->
             <div class="col-1 divData">
                 <p class="infoTable">{{ individualbuildingList.user.email }}</p>
             </div>
+
+            <!-- Dirección -->
             <div class="col-2 divData">
                 <p class="infoTable">{{ individualbuildingList.address }}</p>
             </div>
+
+            <!-- Torres -->
             <div class="col-3 divData">
                 <p class="infoTable">
                     {% for torre in individualbuildingList.towers.all %}
                         {{ torre.name }} <br>
                     {% empty %}
-                        <p class="infoTable">Torre unica</p>
+                        <p class="infoTable">Torre única</p>
                     {% endfor %}
                 </p>
             </div>
-                
+
+            <!-- Botones -->
             <div class="col-3">
-                <a href="{% url 'editBuilding' %}?id={{ individualbuildingList.user.id }}"> <!-- Editar cliente -->
+                <!-- Editar edificio -->
+                <a href="{% url 'editBuilding' %}?id={{ individualbuildingList.user.id }}">
                     <button class="botonEditar">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Editar
                     </button>
                 </a>
-                
-                <a href="{% url 'listTowers' %}?id={{ individualbuildingList.id }}"> 
+
+                <!-- Ver torres -->
+                <a href="{% url 'listTowers' %}?id={{ individualbuildingList.id }}">
                     <button class="botonEditar">
                         <i class="fa-regular fa-pen-to-square"></i>
                         Ver torres
                     </button>
                 </a>
-                <a href="{% url 'listParts' %}?id={{ individualbuildingList.user.id }}"> <!-- Repuestos cliente -->
+
+                <!-- Repuestos -->
+                <a href="{% url 'listParts' %}?id={{ individualbuildingList.user.id }}">
                     <button class="botonExpediente">
                         <i class="fa-regular fa-file"></i>
                         Repuestos
                     </button>
-                </a>                
-                <a href="{% url 'deleteBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('⚠️ Esta acción desactivará el edificio/usuario. Ya no podrá iniciar sesión ni aparecer en formularios, pero sus registros se conservarán. ¿Deseas continuar?');"> <!-- Eliminar cliente -->
-                    <button class="botonEliminar">
-                        <i class="fa-solid fa-trash"></i>
-                        Eliminar
-                    </button>
                 </a>
+
+                <!-- Activar / Desactivar -->
+                {% if individualbuildingList.user.is_active %}
+                    <a href="{% url 'deactivateBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('⚠️ Esta acción desactivará el edificio/usuario. Ya no podrá iniciar sesión ni aparecer en formularios, pero sus registros se conservarán. ¿Deseas continuar?');">
+                        <button class="botonEliminar">
+                            <i class="fa-solid fa-user-slash"></i>
+                            Desactivar
+                        </button>
+                    </a>
+                {% else %}
+                    <a href="{% url 'activateBuilding' %}?id={{ individualbuildingList.user.id }}" onclick="return confirm('✅ ¿Deseas activar este edificio/usuario nuevamente?');">
+                        <button class="botonCrear">
+                            <i class="fa-solid fa-user-check"></i>
+                            Activar
+                        </button>
+                    </a>
+                {% endif %}
             </div>
         </div>
     {% endfor %}

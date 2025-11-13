@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from .models import buildings, towers
 
-
 # Formulario para filtros del listado de edificios / clientes
 class UserFilterForm(forms.Form):
     nombre = forms.CharField(
@@ -16,6 +15,17 @@ class UserFilterForm(forms.Form):
                 'autocomplete':"off"
             }
         )
+    )
+    estado = forms.ChoiceField(
+        required=False,
+        label='Estado',
+        choices=[
+            ('activo', 'Activos'),
+            ('inactivo', 'Inactivos'),
+            ('todos', 'Todos')
+        ],
+        initial='activo',  # Por defecto muestra solo activos
+        widget=forms.Select(attrs={'class': 'inputForm'})
     )
 
 # Formulario para crear o editar un edificio / cliente
@@ -43,6 +53,23 @@ class buildingsForm(forms.ModelForm):
             'placeholder': 'Dirección',
             'class': 'inputForm'
         })
+    )
+
+    # 🔹 Campos opcionales para torres
+    tower1 = forms.CharField(
+        label='Torre 1 (opcional)',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Nombre de la torre 1'})
+    )
+    tower2 = forms.CharField(
+        label='Torre 2 (opcional)',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Nombre de la torre 2'})
+    )
+    tower3 = forms.CharField(
+        label='Torre 3 (opcional)',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Nombre de la torre 3'})
     )
 
     class Meta:
@@ -81,7 +108,6 @@ class buildingsForm(forms.ModelForm):
         if not self.is_update and not password2:
             self.add_error('password2', 'Este campo es obligatorio.')
 
-        # Validar address
         if not cleaned_data.get('address'):
             self.add_error('address', 'Este campo es obligatorio.')
 
@@ -91,14 +117,12 @@ class buildingsForm(forms.ModelForm):
         # Guardar el usuario
         user = super().save(commit=False)
         password = self.cleaned_data.get('password1')
-
         if password:
             user.password = make_password(password)
-
         if commit:
             user.save()
 
-        # Guardar o actualizar el modelo buildings
+        # Guardar o actualizar building
         if self.building_instance:
             building = self.building_instance
         else:
@@ -110,9 +134,22 @@ class buildingsForm(forms.ModelForm):
         if commit:
             building.save()
 
+            # 🔹 Crear torres si se especificaron
+            torres_creadas = False
+            for i in range(1, 4):
+                tower_name = self.cleaned_data.get(f'tower{i}')
+                if tower_name:
+                    towers.objects.create(building=building, name=tower_name)
+                    torres_creadas = True
+
+            # 🔹 Si no se creó ninguna torre, crear una por defecto
+            if not torres_creadas:
+                nombre_torre = f"Torre {building.user.first_name}"
+                towers.objects.create(building=building, name=nombre_torre)
+
         return building
-    
-    
+
+
 # Formulario para añadir una torre a un edificio / cliente
 class towerForm(forms.ModelForm):
     class Meta:

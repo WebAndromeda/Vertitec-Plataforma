@@ -34,19 +34,31 @@ def listBuildings(request):
     form = UserFilterForm(request.GET or None)
 
     # Filtrar solo los usuarios que sean clientes
-    usuarios = User.objects.filter(groups__name__in=['Cliente']).distinct()
+    usuarios = User.objects.filter(groups__name='Cliente').distinct()
+
+    # 🔹 Filtrar por activos por defecto si no hay GET
+    if not request.GET.get('estado'):
+        usuarios = usuarios.filter(is_active=True)
 
     if form.is_valid():
         nombre = form.cleaned_data.get('nombre')
+        estado = form.cleaned_data.get('estado')
 
         if nombre:
             usuarios = usuarios.filter(first_name__icontains=nombre)
 
+        # 🔹 Filtro según estado
+        if estado == 'activo':
+            usuarios = usuarios.filter(is_active=True)
+        elif estado == 'inactivo':
+            usuarios = usuarios.filter(is_active=False)
+        # 'todos' => no filtramos
+
     # Filtrar los buildings asociados a esos usuarios
     buildingsList = buildings.objects.filter(user__in=usuarios)
 
-    # Paginación 
-    paginator = Paginator(buildingsList, 10)  # 2 edificios por página
+    # Paginación
+    paginator = Paginator(buildingsList, 10)  # 10 edificios por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -54,6 +66,7 @@ def listBuildings(request):
         "buildingList": page_obj,
         "form": form
     })
+
         
 
 # Vista para crear un edificio / cliente
@@ -62,18 +75,14 @@ def createBuilding(request):
     if request.method == "POST":
         form = buildingsForm(request.POST, is_update=False)
         if form.is_valid():
-            building = form.save()  # building.user contiene el usuario creado
-            nombre_edificio = building.user.first_name  # Puedes cambiar a building.address si prefieres
-
-            # 🔹 Crear automáticamente una torre con el nombre del edificio
-            nombre_torre = f"Torre {nombre_edificio}"
-            towers.objects.create(building=building, name=nombre_torre)
+            building = form.save()
+            nombre_edificio = building.user.first_name  
 
             # Asignar grupo 'Cliente'
             grupo_cliente = get_object_or_404(Group, name='Cliente')
             building.user.groups.add(grupo_cliente)
 
-            messages.success(request, f"✅ El edificio '{nombre_edificio}' fue creado correctamente con su {nombre_torre}.")
+            messages.success(request, f"✅ El edificio '{nombre_edificio}' fue creado correctamente.")
             return redirect('listBuildings')
         
         print(form.errors)
@@ -85,6 +94,7 @@ def createBuilding(request):
             "forms": form,
             "update": False
         })
+
     
 # Vista para editar un edificio / cliente   
 @admin_required      
@@ -110,24 +120,45 @@ def editBuilding(request):
     })
 
 
-# Vista para eliminar un edificio / cliente
+# Vista para desactivar un edificio / cliente (NO ES BORRARLO, esto solo lo puede hacer el superusuario desde /admin)
 @admin_required
-def deleteBuilding(request):
+def deactivateBuilding(request):
     user_id = request.GET.get("id")
 
-    if(user_id):
-        # Si existe el id del usuario, se elimina
+    if user_id:
+        # Obtenemos el usuario asociado al edificio
         user = User.objects.get(id=user_id)
         nombre_edificio = user.username
-        user.delete()
 
-        # Agregamos mensaje de éxito
-        messages.success(request, f"🗑️ El edificio '{nombre_edificio}' fue eliminado correctamente.")
+        # 🔹 Desactivar usuario en lugar de eliminar
+        user.is_active = False
+        user.save()
 
-        # Despues a eliminarse, se redirecciona al listado de edificios clientes
+        messages.success(request, f"🗑️ El edificio '{nombre_edificio}' fue desactivado correctamente.")
+
+        # Redirigir al listado de edificios
         return redirect('listBuildings')
     
 
+# Vista para reactivar un usuario
+@admin_required
+def activateBuilding(request):
+    user_id = request.GET.get("id")
+
+    if user_id:
+        # Obtenemos el usuario asociado al edificio
+        user = User.objects.get(id=user_id)
+        nombre_edificio = user.username
+
+        # 🔹 Activar usuario
+        user.is_active = True
+        user.save()
+
+        messages.success(request, f"✅ El edificio '{nombre_edificio}' fue activado correctamente.")
+
+        # Redirigir al listado de edificios
+        return redirect('listBuildings')
+    
 
 # Vistas para CRUD de Torres
 # Vista para listar, editar y crear torres en una misma página, de un edificio en especifico (No todas las torres)
