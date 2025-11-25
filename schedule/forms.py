@@ -6,10 +6,7 @@ from buildings.models import buildings
 from datetime import datetime, timedelta
 
 
-
-
-
-# Formulario para filtros del listado de agendamientos por rango de fechas, tecnico, nombre del edificio y estado
+# Formulario para filtros del listado de agendamientos por rango de fechas, técnico, nombre del edificio, estado y programación
 class ScheduleFilterForm(forms.Form):
     # Filtro por rango de fechas
     start_date = forms.DateField(
@@ -54,20 +51,33 @@ class ScheduleFilterForm(forms.Form):
         widget=forms.Select(attrs={"class": "inputForm"})
     )
 
+    # Programado o no programado
+    PROGRAMMED_CHOICES = [
+        ("", "Todos"),                # Sin filtro
+        ("programmed", "Programado"),
+        ("not_programmed", "No programado"),
+    ]
+    programmed = forms.ChoiceField(
+        choices=PROGRAMMED_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={"class": "inputForm"})
+    )
+
+
 
 # Formulario para crear / editar un agendamiento
 class ScheduleForm(forms.ModelForm):
     client = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'inputForm',
-            'placeholder': 'Nombre del edificio',
+            'placeholder': 'Nombre del cliente',
             'autocomplete': 'off',
             'id': 'buildingInput'
         })
     )
 
     technician = forms.ModelChoiceField(
-        queryset=User.objects.none(),  # vacío por defecto, se llenará en __init__
+        queryset=User.objects.none(),
         widget=forms.Select(attrs={'class': 'inputForm'}),
         label="Técnico"
     )
@@ -84,18 +94,26 @@ class ScheduleForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        self.is_update = kwargs.pop('is_update', False)
+        # FIX PARA EL KEYERROR
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # 🔹 Filtrar solo los usuarios que están en el grupo “Técnico”
-        self.fields['technician'].queryset = User.objects.filter(groups__name='Técnico').order_by('first_name')
+        # Si por alguna razón no viene user, no ejecutar nada más
+        if not self.user:
+            return
 
-        # 🔹 Cargar todas las torres (ajusta si quieres filtrar por cliente)
+        # Filtrar técnicos y torres
+        self.fields['technician'].queryset = User.objects.filter(groups__name='Técnico').order_by('first_name')
         self.fields['tower'].queryset = towers.objects.all()
 
-        # 🔹 Mostrar el nombre del cliente si es edición
+        # Si se está editando, colocar el nombre del cliente
         if self.instance and self.instance.pk and not self.data:
             self.fields['client'].initial = self.instance.client.first_name
+
+        # Si es técnico, ocultar campos que no debe ver
+        if self.user.groups.filter(name='Técnico').exists():
+            for field in ['recurrence', 'technician', 'status']:
+                self.fields.pop(field)
 
     def clean_client(self):
         nombre = self.cleaned_data['client'].strip()
@@ -106,7 +124,7 @@ class ScheduleForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        technician = cleaned_data.get('technician')
+        technician = cleaned_data.get('technician') or self.user  # si es técnico, se asigna self.user
         date = cleaned_data.get('date')
         hour = cleaned_data.get('hour')
 
@@ -115,7 +133,7 @@ class ScheduleForm(forms.ModelForm):
 
         new_dt = datetime.combine(date, hour)
 
-        # ❌ Conflicto exacto
+        # Conflicto exacto
         conflict_qs = schedule.objects.filter(technician=technician, date=date, hour=hour)
         if self.instance.pk:
             conflict_qs = conflict_qs.exclude(pk=self.instance.pk)
@@ -124,7 +142,7 @@ class ScheduleForm(forms.ModelForm):
                 f"❌ El técnico {technician.first_name} ya tiene un agendamiento a esa hora."
             )
 
-        # ⚠️ Advertencia si hay otro a menos de una hora
+        # Advertencia si hay otro a menos de una hora
         nearby = schedule.objects.filter(technician=technician, date=date).exclude(hour=hour)
         advertencias = []
         for other in nearby:
@@ -136,8 +154,7 @@ class ScheduleForm(forms.ModelForm):
         if advertencias:
             cleaned_data['__warning__'] = (
                 f"⚠️ El técnico tiene otro agendamiento a menos de una hora "
-                f"(por ejemplo a las {', '.join(advertencias)}). "
-                f"Haz clic nuevamente en Crear agendamiento para agendarlo de todas formas."
+                f"(Exactamente a las {', '.join(advertencias)})."
             )
 
         return cleaned_data

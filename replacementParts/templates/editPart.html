@@ -1,0 +1,53 @@
+{% extends 'layouts/navbar.html' %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
+
+    <div class="container-fluid container_content">
+        <div class="container_form">
+            <h1 class="titleText">
+                Formulario para editar un repuesto
+            </h1>
+            <form action="" method="post">
+                <div class="row">
+                    <div class="col-6">
+                        {% csrf_token %}
+
+                        <label for="" class="labelInputs">Torre</label> <br>
+                        {{ form.tower }} <br><br>
+
+                        <label for="" class="labelInputs">Repuesto</label> <br>
+                        {{ form.nameItem }} <br><br>
+
+                        <label for="" class="labelInputs">Fecha</label> <br>
+                        {{ form.fecha }} <br><br>
+
+                        <label for="" class="labelInputs"># Cotización</label> <br>
+                        {{ form.numero_cotizacion }} <br><br>
+
+                        
+                    </div>
+
+                    <div class="col-6"> 
+                        <label for="" class="labelInputs">Cantidad</label> <br>
+                        {{ form.cantidad }} <br><br>
+
+                        <label for="" class="labelInputs">Precio unitario</label> <br>
+                        {{ form.precio_unitario }} <br><br>
+
+                        <label for="" class="labelInputs">Estado de instalación</label> <br>
+                        {{ form.status_Install }} <br><br>
+
+                        <label for="" class="labelInputs">Estado</label> <br>
+                        {{ form.approved_status }} <br><br>
+                    </div>
+                </div>  
+                <button class="buttonSendForm" type="submit" value="{{ building.id }}">
+                    {% if update %}Editar{% else %}Crear{% endif %} repuesto
+                </button><br><br>
+            </form>
+        </div>
+    </div>
+</center>
+{% endblock %}

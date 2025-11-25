@@ -2,6 +2,11 @@
 {% load static %}
 
 {% block content %}
+<style>
+    .titlesTable {
+        font-size: 1.2em !important;
+    }
+</style>
 <center>
     <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <div class="containerFilter row mb-3 mt-5">
@@ -23,109 +28,45 @@
         {% endfor %}
     {% endif %}
 
+
     <!-- Si se quiere ver todos los repuestos -->
-     
     {% if listado_completo == True %}
-        <!-- Titulos de la tabla -->
-        <div class="tableData">
-            <div class="row containerTitlesTable">
-                <div class="col-3">
-                    <p class="titlesTable">Edificio</p>
-                </div>
-                <div class="col-1">
-                    <p class="titlesTable">Torre</p>
-                </div>
-                <div class="col-2">
-                    <p class="titlesTable">Repuesto</p>
-                </div>
-                <div class="col-1">
-                    <p class="titlesTable">Precio</p>
-                </div>
-                <div class="col-1">
-                    <p class="titlesTable">Estado</p>
-                </div>
-                <div class="col-1">
-                    <p class="titlesTable">Pagado</p>
-                </div>
-                <div class="col-1">
-                    <p class="titlesTable">Instalado</p>
-                </div>
-                <div class="col-2">
-                    <p class="titlesTable">Opciones</p>
-                </div>
-            </div>
-        
-
-        {% for repuesto in repuestos %}
-            <div class="row containerInfoTable">
-                <div class="col-3">
-                    <p class="infoTable">{{ repuesto.building.first_name|default:repuesto.building.username }}</p>
-                </div>
-                <div class="col-1">
-                    <p class="infoTable">{{ repuesto.tower.name }}</p>
-                </div>
-                <div class="col-2">
-                    <p class="infoTable">{{ repuesto.nameItem }}</p>
-                </div>
-                <div class="col-1">
-                    <p class="infoTable">${{ repuesto.price }}</p> 
-                    {% if repuesto.price >= 1000000 %}
-                        <p class="infoTable" style="font-size: 0.8em !important;">Forma de pago: 70% anticipo y 30% contrafactura.</p> 
-                    {% endif %}
-                </div>
-                <div class="col-1">
-                    <p class="infoTable">{% if repuesto.approved %}✅{% else %}❌{% endif %}</p>
-                </div>
-                <div class="col-1">
-                    <p class="infoTable">{{ repuesto.get_status_Payment_display }}</p>
-                </div>
-                <div class="col-1">
-                    <p class="infoTable">{{ repuesto.get_status_Install_display }}</p>
-                </div>
-                    
-                <div class="col-2">
-                    <a href="{% url 'editPart' repuesto.id %}"> <!-- Editar repuesto -->
-                        <button class="botonEditar">
-                            <i class="fa-regular fa-pen-to-square"></i>
-                            Editar
-                        </button>
-                    </a>
-                    <form action="{% url 'deletePart' repuesto.id %}" method="post" style="display:inline;"> <!-- Eliminar repuesto -->
-                        {% csrf_token %}
-                        <button type="submit" class="botonEliminar" onclick="return confirm('¿Estás seguro de eliminar este repuesto?');">
-                            <i class="fa-solid fa-trash"></i> Eliminar
-                        </button>
-                    </form>
-                </div>
-            </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-
-    <!-- Si el administrador solo quire ver los repuestos de un edificio -->
-    {% if listado_completo == False and not es_cliente %}
         <div class="tableData">
             <!-- Titulos -->
             <div class="row containerTitlesTable">
-                <div class="col-2"><p class="titlesTable">Torre</p></div>
-                <div class="col-3"><p class="titlesTable">Repuesto</p></div>
-                <div class="col-2"><p class="titlesTable">Precio</p></div>
+                <div class="col-1"><p class="titlesTable">Edificio</p></div>
+                <div class="col-1"><p class="titlesTable">Torre</p></div>
+                <div class="col-1"><p class="titlesTable">Repuesto</p></div>
+                <div class="col-1"><p class="titlesTable">Fecha</p></div>
+                <div class="col-1"><p class="titlesTable"># Cotización</p></div>
+                <div class="col-1"><p class="titlesTable">Cantidad</p></div>
+                <div class="col-1">
+                    <p class="titlesTable">Precio unitario</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Precio total</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-1"><p class="titlesTable">Anticipo</p></div>
+                <div class="col-1"><p class="titlesTable">Estado instalación</p></div>
                 <div class="col-1"><p class="titlesTable">Estado</p></div>
-                <div class="col-1"><p class="titlesTable">Pagado</p></div>
-                <div class="col-1"><p class="titlesTable">Instalado</p></div>
-                <div class="col-2"><p class="titlesTable">Opciones</p></div>
+                <div class="col-1"><p class="titlesTable">Opciones</p></div>
             </div>
 
             {% for repuesto in repuestos %}
                 <div class="row containerInfoTable">
-                    <div class="col-2"><p class="infoTable">{{ repuesto.tower.name }}</p></div>
-                    <div class="col-3"><p class="infoTable">{{ repuesto.nameItem }}</p></div>
-                    <div class="col-2">
-                        <p class="infoTable">${{ repuesto.price }}</p>
-                        {% if repuesto.price >= 1000000 %}
-                            <p class="infoTable" style="font-size: 0.8em;">Forma de pago: 70% anticipo y 30% contrafactura.</p>
-                        {% endif %}
-                    </div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.building.first_name|default:repuesto.building.username }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.tower.name }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.nameItem }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.fecha }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.numero_cotizacion }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.cantidad }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.precio_unitario }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.precio_total }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Payment_display }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Install_display }}</p></div>
+
                     <!-- Estado de aprobación -->
                     <div class="col-1">
                         <p class="infoTable">
@@ -138,8 +79,134 @@
                             {% endif %}
                         </p>
                     </div>
+                    <div class="col-1">
+                        <a href="{% url 'editPart' repuesto.id %}">
+                            <button class="botonEditar"><i class="fa-regular fa-pen-to-square"></i> Editar</button>
+                        </a>
+                        <form action="{% url 'deletePart' repuesto.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="botonEliminar" onclick="return confirm('¿Eliminar este repuesto?');">
+                                <i class="fa-solid fa-trash"></i> Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>          
+            {% endfor %}
+            <br>
+
+            <!-- Paginación -->
+            <div>
+                {% if repuestos.has_previous %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ repuestos.number }}</span>
+
+                {% if repuestos.has_next %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.next_page_number }}" class="botonEditar">Siguiente</a>
+                {% endif %}
+            </div>
+            <br>
+
+        </div>
+    {% endif %}
+
+
+    <!-- Si el administrador quiere ver los repuestos de un solo edificio -->
+    {% if listado_completo == False and not es_cliente %}
+        <div class="tableData">
+            <!-- Titulos -->
+            <div class="row containerTitlesTable">
+                <div class="col-1"><p class="titlesTable">Torre</p></div>
+                <div class="col-1"><p class="titlesTable">Repuesto</p></div>
+                <div class="col-1"><p class="titlesTable">Fecha</p></div>
+                <div class="col-1"><p class="titlesTable"># Cotización</p></div>
+                <div class="col-1"><p class="titlesTable">Cantidad</p></div>
+                <div class="col-1">
+                    <p class="titlesTable">Precio unitario</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Precio total</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-1"><p class="titlesTable">Anticipo</p></div>
+                <div class="col-1"><p class="titlesTable">Estado instalación</p></div>
+                <div class="col-1"><p class="titlesTable">Estado</p></div>
+                <div class="col-2"><p class="titlesTable">Opciones</p></div>
+            </div>
+
+            <!-- FORMULARIO PARA CREAR NUEVO REPUESTO -->
+            <div class="containerInfoTable">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row align-items-center">
+                        <!-- Torre -->
+                        <div class="col-1">{{ form.tower }}</div>
+
+                        <!-- Nombre del repuesto -->
+                        <div class="col-1">{{ form.nameItem }}</div>
+
+                        <!-- Fecha -->
+                        <div class="col-1">{{ form.fecha }}</div>
+
+                        <!-- Número de cotización -->
+                        <div class="col-1">{{ form.numero_cotizacion }}</div>
+
+                        <!-- Cantidad -->
+                        <div class="col-1">{{ form.cantidad }}</div>
+
+                        <!-- Precio unitario (SIN IVA) -->
+                        <div class="col-1">{{ form.precio_unitario }}</div>
+
+                        <!-- Precio total (automático) -->
+                        <div class="col-1">Se calcula automáticamente</div>
+
+                        <!-- Estado pago -->
+                        <div class="col-1">Se calcula automáticamente</div>
+
+                        <!-- Estado instalación -->
+                        <div class="col-1">{{ form.status_Install }}</div>
+
+                        <!-- Estado -->
+                        <div class="col-1">{{ form.approved_status }}</div>
+                        
+
+                        <!-- Botón -->
+                        <div class="col-2">
+                            <button class="botonCrear" type="submit">
+                                <i class="fa-solid fa-plus"></i>
+                                Nuevo repuesto
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            {% for repuesto in repuestos %}
+                <div class="row containerInfoTable">
+                    <div class="col-1"><p class="infoTable">{{ repuesto.tower.name }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.nameItem }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.fecha }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.numero_cotizacion }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.cantidad }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.precio_unitario }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.precio_total }}</p></div>
                     <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Payment_display }}</p></div>
                     <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Install_display }}</p></div>
+
+                    <!-- Estado de aprobación -->
+                    <div class="col-1">
+                        <p class="infoTable">
+                            {% if repuesto.approved_status == 'aprobado' %}
+                                ✅ Aprobado
+                            {% elif repuesto.approved_status == 'rechazado' %}
+                                ❌ Rechazado
+                            {% else %}
+                                ⏳Pendiente
+                            {% endif %}
+                        </p>
+                    </div>
                     <div class="col-2">
                         <a href="{% url 'editPart' repuesto.id %}">
                             <button class="botonEditar"><i class="fa-regular fa-pen-to-square"></i> Editar</button>
@@ -154,118 +221,93 @@
                 </div>          
             {% endfor %}
 
-            <!-- FORMULARIO PARA CREAR NUEVO REPUESTO -->
-            <div class="containerInfoTable">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="row align-items-center">
-                        <div class="col-2">
-                            {{ form.tower }}
-                        </div>
-                        <div class="col-3">
-                            {{ form.nameItem }}
-                        </div>
-                        <div class="col-2">
-                            {{ form.price }}
-                        </div>
-                        <div class="col-1">
-                            {{ form.approved }}
-                        </div>
-                        <div class="col-1">
-                            {{ form.status_Payment }}
-                        </div>
-                        <div class="col-1">
-                            {{ form.status_Install }}
-                        </div>
-                        <div class="col-2">
-                            <button class="botonCrear" type="submit">
-                                <i class="fa-solid fa-plus"></i>
-                                Nuevo repuesto
-                            </button>
-                        </div>
-                    </div>
-                </form>
+            <br>
+            <!-- Paginación -->
+            <div>
+                {% if repuestos.has_previous %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ repuestos.number }}</span>
+
+                {% if repuestos.has_next %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.next_page_number }}" class="botonEditar">Siguiente</a>
+                {% endif %}
             </div>
+            <br>
+
         </div>
     {% endif %}
 
     <!-- Si los repuestos los está viendo un cliente (solo verá los suyos) -->
     {% if listado_completo == False and es_cliente %}
-    <div class="tableData">
-        <!-- Títulos -->
-        <div class="row containerTitlesTable">
-            <div class="col-2"><p class="titlesTable">Torre</p></div>
-            <div class="col-3"><p class="titlesTable">Repuesto</p></div>
-            <div class="col-2"><p class="titlesTable">Precio</p></div>
-            <div class="col-1"><p class="titlesTable">Estado</p></div>
-            <div class="col-1"><p class="titlesTable">Pagado</p></div>
-            <div class="col-1"><p class="titlesTable">Instalado</p></div>
-            <div class="col-2"><p class="titlesTable">Opciones</p></div>
-        </div>
+        <div class="tableData">
+            <!-- Titulos -->
+            <div class="row containerTitlesTable">
+                <div class="col-2"><p class="titlesTable">Torre</p></div>
+                <div class="col-1"><p class="titlesTable">Repuesto</p></div>
+                <div class="col-1"><p class="titlesTable">Fecha</p></div>
+                <div class="col-1"><p class="titlesTable"># Cotización</p></div>
+                <div class="col-1"><p class="titlesTable">Cantidad</p></div>
+                <div class="col-1">
+                    <p class="titlesTable">Precio unitario</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Precio total</p>
+                    <p class="infoTable" style="font-size: 0.8em !important;">Sin IVA.</p> 
+                </div>
+                <div class="col-1"><p class="titlesTable">Anticipo</p></div>
+                <div class="col-1"><p class="titlesTable">Estado instalación</p></div>
+                <div class="col-1"><p class="titlesTable">Estado</p></div>
+            </div>
 
-        {% for repuesto in repuestos %}
-        <div class="row containerInfoTable">
-            <div class="col-2"><p class="infoTable">{{ repuesto.tower.name }}</p></div>
-            <div class="col-3"><p class="infoTable">{{ repuesto.nameItem }}</p></div>
-            <div class="col-2">
-                <p class="infoTable">${{ repuesto.price }}</p>
-                {% if repuesto.price >= 1000000 %}
-                    <p class="infoTable" style="font-size: 0.8em;">
-                        Forma de pago: 70% anticipo y 30% contrafactura.
-                    </p>
+
+            {% for repuesto in repuestos %}
+                <div class="row containerInfoTable">
+                    <div class="col-2"><p class="infoTable">{{ repuesto.tower.name }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.nameItem }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.fecha }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.numero_cotizacion }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.cantidad }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.precio_unitario }}</p></div>
+                    <div class="col-2"><p class="infoTable">{{ repuesto.precio_total }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Payment_display }}</p></div>
+                    <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Install_display }}</p></div>
+
+                    <!-- Estado de aprobación -->
+                    <div class="col-1">
+                        <p class="infoTable">
+                            {% if repuesto.approved_status == 'aprobado' %}
+                                ✅ Aprobado
+                            {% elif repuesto.approved_status == 'rechazado' %}
+                                ❌ Rechazado
+                            {% else %}
+                                ⏳Pendiente
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-2">
+                    </div>
+                </div>          
+            {% endfor %}
+
+            <br>
+            <!-- Paginación -->
+            <div>
+                {% if repuestos.has_previous %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.previous_page_number }}" class="botonEditar">Anterior</a>
+                {% endif %}
+
+                <span class="botonEditar">{{ repuestos.number }}</span>
+
+                {% if repuestos.has_next %}
+                    <a href="?id={{ building.id }}&page={{ repuestos.next_page_number }}" class="botonEditar">Siguiente</a>
                 {% endif %}
             </div>
+            <br>
 
-            <!-- Estado de aprobación -->
-            <div class="col-1">
-                <p class="infoTable">
-                    {% if repuesto.approved_status == 'aprobado' %}
-                        ✅ Aprobado
-                    {% elif repuesto.approved_status == 'rechazado' %}
-                        ❌ Rechazado
-                    {% else %}
-                        ⏳ Pendiente
-                    {% endif %}
-                </p>
-            </div>
-
-            <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Payment_display }}</p></div>
-            <div class="col-1"><p class="infoTable">{{ repuesto.get_status_Install_display }}</p></div>
-
-            <!-- Opciones -->
-            <div class="col-2">
-                {% if repuesto.approved_status == 'pendiente' %}
-                    <a href="{% url 'toggle_approval' repuesto.id 'aprobar' %}">
-                        <button class="botonCrear"
-                            onclick="return confirm('Si apruebas este repuesto, no podrás cancelarlo después. Solo el soporte de Vertitec podrá reactivarlo. ¿Deseas continuar?');">
-                            <i class="fa-regular fa-thumbs-up"></i> Aprobar
-                        </button>
-                    </a>
-
-                    <a href="{% url 'toggle_approval' repuesto.id 'rechazar' %}">
-                        <button class="botonEliminar"
-                            onclick="return confirm('Si cancelas este repuesto, no podrás aprobarlo después. Solo el soporte de Vertitec podrá reactivarlo. ¿Deseas continuar?');">
-                            <i class="fa-solid fa-xmark"></i> Rechazar
-                        </button>
-                    </a>
-                {% elif repuesto.approved_status == 'aprobado' %}
-                    <p class="infoTable">✅ Aprobado</p>
-                {% elif repuesto.approved_status == 'rechazado' %}
-                    <p class="infoTable">❌ Rechazado</p>
-                {% endif %}
-            </div>
         </div>
-        {% empty %}
-        <div class="row containerInfoTable">
-            <div class="col-12 text-center">
-                <p class="infoTable" style="font-style: italic; color: gray;">
-                    ⚙️ No hay repuestos registrados para tu edificio.
-                </p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
     {% endif %}
-
 </center>
 {% endblock %}

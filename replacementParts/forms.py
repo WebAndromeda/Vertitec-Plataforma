@@ -52,20 +52,39 @@ class ReplacementPartsFilterForm(forms.Form):
 
 # Formulario para creación de un repuesto
 class replacementPartsForm(forms.ModelForm):
+
     class Meta:
         model = replacementParts
         fields = [
+            "fecha",
+            "numero_cotizacion",
             "nameItem",
-            "price",
+            "cantidad",
+            "precio_unitario",
             "status_Install",
-            "status_Payment",
+            "approved_status",
             "tower",
         ]
+
         widgets = {
+            "fecha": forms.DateInput(attrs={"type": "date", "class": "inputForm"}),
+            "numero_cotizacion": forms.NumberInput(attrs={"class": "inputForm", "placeholder": "No. Cotización"}),
             "nameItem": forms.TextInput(attrs={"class": "inputForm", "placeholder": "Nombre del repuesto"}),
-            "price": forms.NumberInput(attrs={"class": "inputForm", "placeholder": "Precio"}),
+            "cantidad": forms.NumberInput(attrs={"class": "inputForm", "min": "1"}),
+            "precio_unitario": forms.NumberInput(attrs={"class": "inputForm", "step": "0.01", "placeholder": "Precio unitario (SIN IVA)"}),
             "status_Install": forms.Select(attrs={"class": "inputForm"}),
-            "status_Payment": forms.Select(attrs={"class": "inputForm"}),
+            "approved_status": forms.Select(attrs={"class": "inputForm"}),
             "tower": forms.Select(attrs={"class": "inputForm"}),
         }
+
+    # Calcular precio_total automáticamente
+    def clean(self):
+        cleaned_data = super().clean()
+        cantidad = cleaned_data.get("cantidad")
+        precio_unitario = cleaned_data.get("precio_unitario")
+
+        if cantidad is not None and precio_unitario is not None:
+            cleaned_data["precio_total"] = cantidad * precio_unitario
+
+        return cleaned_data
 

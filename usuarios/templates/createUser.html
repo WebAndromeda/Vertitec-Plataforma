@@ -32,9 +32,22 @@
                         {{ form.username }}
                         {{ form.username.errors }}<br><br>
 
-                        <label class="labelInputs">Correo electrónico</label><br>
-                        {{ form.email }}
-                        {{ form.email.errors }}<br><br>
+                        <label class="labelInputs">Apellido</label><br>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}<br><br>
+
+                        <label class="labelInputs">
+                            Confirmación de contraseña {% if update %}(Opcional){% endif %}
+                        </label><br>
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}<br><br>
+
+                    </div>
+
+                    <div class="col-6">
+                        <label class="labelInputs">Nombre</label><br>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}<br><br>
 
                         <label class="labelInputs">
                             Contraseña {% if update %}(Opcional){% endif %}
@@ -49,22 +62,6 @@
                             {{ form.role }}
                             {{ form.role.errors }}<br><br>
                         {% endif %}
-                    </div>
-
-                    <div class="col-6">
-                        <label class="labelInputs">Nombre</label><br>
-                        {{ form.first_name }}
-                        {{ form.first_name.errors }}<br><br>
-
-                        <label class="labelInputs">Apellido</label><br>
-                        {{ form.last_name }}
-                        {{ form.last_name.errors }}<br><br>
-
-                        <label class="labelInputs">
-                            Confirmación de contraseña {% if update %}(Opcional){% endif %}
-                        </label><br>
-                        {{ form.password2 }}
-                        {{ form.password2.errors }}<br><br>
                     </div>
                 </div>
 

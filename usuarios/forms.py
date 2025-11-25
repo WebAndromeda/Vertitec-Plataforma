@@ -72,10 +72,10 @@ class UnifiedUserForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name']
+        # 🚨 Email eliminado del formulario
+        fields = ['username', 'first_name', 'last_name']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Usuario'}),
-            'email': forms.EmailInput(attrs={'class': 'inputForm', 'placeholder': 'Correo electrónico'}),
             'first_name': forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Nombre'}),
             'last_name': forms.TextInput(attrs={'class': 'inputForm', 'placeholder': 'Apellido'}),
         }
@@ -100,8 +100,9 @@ class UnifiedUserForm(forms.ModelForm):
             self.fields['role'].widget = forms.HiddenInput()
             self.fields['role'].required = False
             self.fields['password1'].help_text = "Deja este campo vacío si no deseas cambiar la contraseña."
+
         else:
-            # En creación todos los campos son obligatorios
+            # En creación todos los campos del formulario son obligatorios
             for field_name in self.fields:
                 self.fields[field_name].required = True
 
@@ -115,7 +116,7 @@ class UnifiedUserForm(forms.ModelForm):
         password2 = cleaned_data.get('password2')
 
         if not self.is_update:
-            # En creación ambas contraseñas deben estar presentes
+            # En creación las contraseñas deben existir
             if not password1 or not password2:
                 raise forms.ValidationError("Debes ingresar y confirmar la contraseña para crear un usuario nuevo.")
 

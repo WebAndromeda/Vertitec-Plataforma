@@ -28,6 +28,21 @@
             </div>
         </div>
 
+        <!-- Formulario para crear una nueva torre -->
+        <div class="row containerInfoTable align-items-center mt-3">
+            <div class="col-12 divData">
+                <form method="POST" action="{% url 'listTowers' %}?id={{ building.id }}" class="form-inline" style="display:inline-flex; align-items:center; gap:8px;">
+                    {% csrf_token %}
+                    <!-- tower_id vacío indica creación -->
+                    <input type="hidden" name="tower_id" value="">
+                    <input type="text" name="name" placeholder="Nombre de nueva torre" class="inputForm" required>
+                    <button type="submit" class="botonCrear">
+                        <i class="fa-solid fa-plus"></i> Crear
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- Listado de torres existentes -->
         {% for tower in towerList %}
         <div class="row containerInfoTable align-items-center">
@@ -50,23 +65,6 @@
             </div>
         </div>
         {% endfor %}
-
-        <!-- Formulario para crear una nueva torre -->
-        <div class="row containerInfoTable align-items-center mt-3">
-            <div class="col-12 divData">
-                <form method="POST" action="{% url 'listTowers' %}?id={{ building.id }}" class="form-inline" style="display:inline-flex; align-items:center; gap:8px;">
-                    {% csrf_token %}
-                    <!-- tower_id vacío indica creación -->
-                    <input type="hidden" name="tower_id" value="">
-                    <input type="text" name="name" placeholder="Nombre de nueva torre" class="inputForm" required>
-                    <button type="submit" class="botonCrear">
-                        <i class="fa-solid fa-plus"></i> Crear
-                    </button>
-                </form>
-            </div>
-        </div>
-
     </div>
 </center>
-
 {% endblock %}

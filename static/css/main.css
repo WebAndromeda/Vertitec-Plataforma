@@ -179,6 +179,7 @@ body{
     transition: background-color var(--transicion), color var(--transicion);
 }
 .inputForm{
+    max-width: 100%;
     border-radius: 5px;
     border-style: none;
     background-color: var(--colorInputs);
@@ -296,7 +297,7 @@ body{
     padding: 1.3em 0em 0em 0em;
     font-weight: 600;
     font-size: 1.5em;
-    line-height: 0.5em;
+    line-height: 1em;
 }
 .infoTable{
     color: var(--darkcolor4);

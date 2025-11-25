@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from utils.decorators import admin_required
+from utils.decorators import admin_required, roles_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import ScheduleForm, ScheduleFilterForm
 from .models import schedule
@@ -11,6 +11,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django import forms
 
 
 # Crear opciones para seleccionar la torre del edificio seleccionado
@@ -76,6 +77,7 @@ def listSchedule(request):
         technician = form.cleaned_data.get("technician")
         building_name = form.cleaned_data.get("building")
         status = form.cleaned_data.get("status")
+        programmed = form.cleaned_data.get("programmed")   # <-- NUEVO
 
         if start_date:
             scheduleModel = scheduleModel.filter(date__gte=start_date)
@@ -91,6 +93,12 @@ def listSchedule(request):
             scheduleModel = scheduleModel.filter(status=True)
         elif status == "false":
             scheduleModel = scheduleModel.filter(status=False)
+
+        # ----------------------------
+        # FILTRO NUEVO: programmed
+        # ----------------------------
+        if programmed:  
+            scheduleModel = scheduleModel.filter(programmed=programmed)
 
     # Filtro por rol del usuario
     if request.user.groups.filter(name='Administrador').exists():
@@ -111,67 +119,39 @@ def listSchedule(request):
     })
 
 
-# Vista para crear un agendamiento
-@admin_required
+
+@roles_required("Administrador", "Técnico")
 def createSchedule(request):
     if request.method == "POST":
-        form = ScheduleForm(request.POST)
+        form = ScheduleForm(request.POST, user=request.user)
         if form.is_valid():
+            # ⚠️ Advertencia por horarios cercanos
+            warning = form.cleaned_data.get('__warning__')
+            if warning and "confirm_warning" not in request.POST:
+                messages.warning(request, warning)
+                return render(request, "createSchedule.html", {
+                    "forms": form,
+                    "confirm_warning": True,
+                    "update": False
+                })
+
             sched = form.save(commit=False)
 
-            # Hora y fecha combinadas del nuevo agendamiento
-            new_datetime = timezone.make_aware(
-                timezone.datetime.combine(sched.date, sched.hour)
-            )
+            # Asignar campos automáticos según rol
+            if request.user.groups.filter(name="Administrador").exists():
+                sched.programmed = "programmed"
+            else:  # Técnico
+                sched.programmed = "not_programmed"
+                sched.recurrence = "single"
+                sched.technician = request.user
+                sched.status = False
 
-            # Buscar agendamientos del mismo técnico el mismo día
-            agendamientos_mismo_dia = schedule.objects.filter(
-                technician=sched.technician,
-                date=sched.date
-            )
-
-            advertencias = []
-            for ag in agendamientos_mismo_dia:
-                ag_datetime = timezone.make_aware(
-                    timezone.datetime.combine(ag.date, ag.hour)
-                )
-                diff = abs((new_datetime - ag_datetime).total_seconds())
-
-                # Si ya hay un agendamiento exactamente a la misma hora
-                if diff == 0:
-                    messages.error(request, "❌ Ya existe un agendamiento a esa misma hora.")
-                    return render(request, "createSchedule.html", {
-                        "forms": form,
-                        "update": False
-                    })
-
-                # Si hay un agendamiento a menos de una hora, lo añadimos a la lista de advertencias
-                if diff < 3600:
-                    advertencias.append(ag.hour.strftime("%H:%M"))
-
-            # Si existen advertencias (citas cercanas)
-            if advertencias:
-                if "confirm_warning" not in request.POST:
-                    warning_text = (
-                        f"⚠️ El técnico tiene otro agendamiento a menos de una hora "
-                        f"(Exactamente a las {', '.join(advertencias)}). "
-                        "¿Deseas continuar de todos modos?"
-                    )
-                    messages.warning(request, warning_text)
-                    return render(request, "createSchedule.html", {
-                        "forms": form,
-                        "confirm_warning": True,
-                        "warning_text": warning_text,
-                        "update": False
-                    })
-
-            # Si no hay conflictos o el usuario confirmó, se guarda
             sched.save()
 
-            # Si es recurrente mensual, crear futuras repeticiones
+            # Recurrente mensual solo aplica si es admin
             if sched.recurrence == "monthly":
                 base_date = sched.date
-                for i in range(1, 6):  # crea 6 meses adicionales
+                for i in range(1, 6):
                     try:
                         new_date = base_date + relativedelta(months=i)
                         schedule.objects.create(
@@ -181,10 +161,10 @@ def createSchedule(request):
                             hour=sched.hour,
                             status=False,
                             recurrence=sched.recurrence,
-                            technician=sched.technician
+                            technician=sched.technician,
+                            programmed=sched.programmed
                         )
                     except ValueError:
-                        # Ajuste por meses sin ese día (ej: 30 feb)
                         new_date = base_date + relativedelta(months=i, day=31)
                         schedule.objects.create(
                             client=sched.client,
@@ -193,37 +173,47 @@ def createSchedule(request):
                             hour=sched.hour,
                             status=False,
                             recurrence=sched.recurrence,
-                            technician=sched.technician
+                            technician=sched.technician,
+                            programmed=sched.programmed
                         )
 
+            # ✅ Mensaje de éxito y redirección al listado
             messages.success(request, "✅ Agendamiento creado correctamente.")
             return redirect("listSchedule")
-    else:
-        form = ScheduleForm()
 
-    return render(request, "createSchedule.html", {
-        "forms": form,
-        "update": False
-    })
+        else:
+            # Formulario inválido → errores en el mismo formulario
+            return render(request, "createSchedule.html", {
+                "forms": form,
+                "update": False
+            })
+
+    else:
+        # GET → formulario vacío, siempre pasamos user
+        form = ScheduleForm(user=request.user)
+        return render(request, "createSchedule.html", {
+            "forms": form,
+            "update": False
+        })
 
 
 # Vista para editar un agendamiento
-@login_required
+@roles_required("Administrador", "Técnico")
 def editSchedule(request):
     schedule_id = request.GET.get("id")
     scheduleEdit = get_object_or_404(schedule, id=schedule_id)
 
     if request.method == "POST":
-        form = ScheduleForm(request.POST, instance=scheduleEdit)
+        form = ScheduleForm(request.POST, instance=scheduleEdit, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f"✅ El agendamiento fue editado correctamente. ")
             return redirect('listSchedule')
     else:
-        # Aquí asignamos manualmente initial para el campo 'client'
         form = ScheduleForm(
             instance=scheduleEdit,
-            initial={'client': scheduleEdit.client.first_name}
+            initial={'client': scheduleEdit.client.first_name},
+            user=request.user,   # ← OBLIGATORIO
         )
 
     return render(request, 'createSchedule.html', {

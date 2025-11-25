@@ -126,17 +126,14 @@
 
     <div class="tableData">
         <div class="row containerTitlesTable">
-            <div class="col-2">
+            <div class="col-3">
                 <p class="titlesTable">Nombre</p>
             </div>
-            <div class="col-2">
+            <div class="col-3">
                 <p class="titlesTable">Apellido</p>
             </div>
             <div class="col-2">
                 <p class="titlesTable">Usuario</p>
-            </div>
-            <div class="col-2">
-                <p class="titlesTable">Correo</p>
             </div>
             <div class="col-2">
                 <p class="titlesTable">Rol</p>
@@ -150,12 +147,12 @@
     {% for user in usuarios %}
         <div class="row containerInfoTable {% if not user.is_active %}usuarioDesactivado{% endif %}">
             <!-- Nombre -->
-            <div class="col-2 divData">
+            <div class="col-3 divData">
                 <p class="infoTable">{{ user.first_name }}</p>
             </div>
 
             <!-- Apellido -->
-            <div class="col-2 divData">
+            <div class="col-3 divData">
                 {% if user.last_name %}
                     <p class="infoTable">{{ user.last_name }}</p>
                 {% else %}
@@ -167,15 +164,6 @@
             <div class="col-2 divData">
                 {% if user.username %}
                     <p class="infoTable">{{ user.username }}</p>
-                {% else %}
-                    <p class="infoTable">No registrado</p>
-                {% endif %}
-            </div>
-
-            <!-- Correo -->
-            <div class="col-2 divData">
-                {% if user.email %}
-                    <p class="infoTable">{{ user.email }}</p>
                 {% else %}
                     <p class="infoTable">No registrado</p>
                 {% endif %}
@@ -219,19 +207,21 @@
             </div>
         </div>
     {% endfor %}
-    <br>
-    <div>
-        {% if usuarios.has_previous %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.previous_page_number }}" class="botonEditar">Anterior</a>
-        {% endif %}
+        <br>
 
-        <span class="botonEditar">{{ usuarios.number }}</span>
+        <!-- Paginación -->
+        <div>
+            {% if usuarios.has_previous %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.previous_page_number }}" class="botonEditar">Anterior</a>
+            {% endif %}
 
-        {% if usuarios.has_next %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.next_page_number }}" class="botonEditar">Siguiente</a>
-        {% endif %}
-    </div>
-    <br>
+            <span class="botonEditar">{{ usuarios.number }}</span>
+
+            {% if usuarios.has_next %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ usuarios.next_page_number }}" class="botonEditar">Siguiente</a>
+            {% endif %}
+        </div>
+        <br>
     </div>
 </center>
 

@@ -9,7 +9,7 @@
             <h1 class="titleText">Agendamientos</h1>
         </div>
         <div class="col-8">
-            {% if user.groups.all.0.name == "Administrador" %}
+            {% if user.groups.all.0.name == "Administrador"%}
                 <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
                     <button class="botonCrear">
                         <i class="fa-solid fa-plus"></i>
@@ -17,18 +17,26 @@
                     </button> 
                 </a> <br> <br>
                 <form method="get">
+                    {{ form.programmed }} 
                     {{ form.start_date }}
                     {{ form.end_date }}
+                    {{ form.status }}
                     {{ form.technician }}
                     {{ form.building }}
-                    {{ form.status }}
                     <ul id="suggestions" class="suggestions-list"></ul>
                 <button type="submit" class="botonEditar">Filtrar</button>
             </form>
             {% endif %}
 
             {% if user.groups.all.0.name == "Técnico" %}
+                <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
+                    <button class="botonCrear">
+                        <i class="fa-solid fa-plus"></i>
+                        Nuevo agendamiento
+                    </button> 
+                </a> <br> <br>
                 <form method="get">
+                    {{ form.programmed }} 
                     {{ form.start_date }}
                     {{ form.end_date }}
                     {{ form.building }}
@@ -152,6 +160,9 @@
             <!-- Titulos de la tabla -->
             <div class="row containerTitlesTable">
                 <div class="col-1">
+                    <p class="titlesTable">Programación</p>
+                </div>
+                <div class="col-1">
                     <p class="titlesTable">Fecha</p>
                 </div>
                 <div class="col-1">
@@ -163,7 +174,7 @@
                 <div class="col-2">
                     <p class="titlesTable">Técnico</p>
                 </div>
-                <div class="col-2">
+                <div class="col-1">
                     <p class="titlesTable">Edificio</p>
                 </div>
                 <div class="col-2">
@@ -181,6 +192,9 @@
             {% for individualSchedule in schedule %}
                 <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
                     <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.get_programmed_display }}</p>
+                    </div>
+                    <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.date }}</p>
                     </div>
                     <div class="col-1 divData">
@@ -192,7 +206,7 @@
                     <div class="col-2 divData">
                         <p class="infoTable">{{ individualSchedule.technician }}</p>
                     </div>
-                    <div class="col-2 divData">
+                    <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
                     </div>
                     <div class="col-2 divData">
@@ -218,17 +232,30 @@
                         </a>
                     </div>
                 </div>
+            {% empty %}            
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay agendamientos registrados.
+                        </p>
+                    </div>
+                </div>  
             {% endfor %}
             <br>
             <div>
                 {% if schedule.has_previous %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+                    <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">
+                        Anterior
+                    </a>
                 {% endif %}
+
 
                 <span class="botonEditar">{{ schedule.number }}</span>
 
                 {% if schedule.has_next %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+                    <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">
+                        Siguiente
+                    </a>
                 {% endif %}
             </div>
             <br> <br>
@@ -239,10 +266,21 @@
 
     <!-- Datos tecnicos -->
     {% if user.groups.all.0.name == "Técnico" %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+                {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <!-- Tabla datos -->
         <div class="tableData">
             <!-- Titulos de la tabla -->
             <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Programación</p>
+                </div>
                 <div class="col-1">
                     <p class="titlesTable">Fecha</p>
                 </div>
@@ -252,7 +290,7 @@
                 <div class="col-1">
                     <p class="titlesTable">Estado</p>
                 </div>
-                <div class="col-3">
+                <div class="col-2">
                     <p class="titlesTable">Edificio</p>
                 </div>
                 <div class="col-2">
@@ -270,6 +308,9 @@
             {% for individualSchedule in schedule %}
                 <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
                     <div class="col-1 divData">
+                        <p class="infoTable">{{ individualSchedule.get_programmed_display }}</p>
+                    </div>
+                    <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.date }}</p>
                     </div>
                     <div class="col-1 divData">
@@ -278,7 +319,7 @@
                     <div class="col-1 divData">
                         <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
                     </div>
-                    <div class="col-3 divData">
+                    <div class="col-2 divData">
                         <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
                     </div>
                     <div class="col-2 divData">
@@ -289,14 +330,49 @@
                     </div>
                         
                     <div class="col-2">
-                        <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                            <button class="botonEditar">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                                Empezar
-                            </button>
-                        </a>
+                        {% if individualSchedule.programmed == "not_programmed" %}
+                            <!-- Aquí pones lo que quieras mostrar -->
+                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                                <button class="botonCrear">
+                                    <i class="fa-solid fa-plus"></i>
+
+                                    <!-- Palabra empezar -->
+                                </button>
+                            </a>
+
+                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                                <button class="botonEditar">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <!-- Palabra editar -->
+                                </button>
+                            </a>
+                            
+                            <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
+                                <button class="botonEliminar">
+                                    <i class="fa-solid fa-trash"></i>
+                                    
+                                    <!-- Palabra eliminar -->
+                                </button>
+                            </a>          
+                        {% else %}
+                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                                <button class="botonCrear">
+                                    <i class="fa-solid fa-plus"></i>
+                                    Empezar
+                                    <!-- Palabra empezar -->
+                                </button>
+                            </a>
+                        {% endif %}                                       
                     </div>
                 </div>
+            {% empty %}
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay agendamientos registrados.
+                        </p>
+                    </div>
+                </div> 
             {% endfor %}
             <br>
             <div>
@@ -318,6 +394,7 @@
 
     <!-- Datos clientes -->
     {% if user.groups.all.0.name == "Cliente" %}
+        <h1 class="infoTable mt-3 mb-3"> <strong> Nota: Este cronograma puede tener modificaciones según la disponibilidad de la operación. </strong> </h1>
         <!-- Tabla datos -->
         <div class="tableData">
             <!-- Titulos de la tabla -->
@@ -340,7 +417,7 @@
             </div>
         
             <!-- Datos -->
-            {% for individualSchedule in schedule %}
+            {% for individualSchedule in schedule %}    
                 <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
                     <div class="col-3 divData">
                         <p class="infoTable">{{ individualSchedule.date }}</p>
@@ -361,7 +438,6 @@
                     
                 </div>
             {% empty %}
-
                 <div class="row containerInfoTable">
                     <div class="col-12 text-center">
                         <p class="infoTable" style="font-style: italic; color: gray;">
@@ -369,7 +445,6 @@
                         </p>
                     </div>
                 </div>  
-
             {% endfor %}
             <br>
             <div>

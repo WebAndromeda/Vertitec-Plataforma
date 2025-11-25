@@ -10,6 +10,11 @@ class schedule(models.Model):
         # ('yearly', 'Anual'),
     ]
 
+    PROGRAMMING_OPTIONS = [
+        ('programmed', 'Programado'),
+        ('not_programmed', 'No programado')
+    ]
+
     # Usuario que solicita el agendamiento (cliente)
     client = models.ForeignKey(
         User,
@@ -29,6 +34,13 @@ class schedule(models.Model):
         max_length=20,
         choices=RECURRENCE_CHOICES,
         default='single'
+    )
+    
+    # Programado o no programado
+    programmed = models.CharField(
+        max_length=20,
+        choices=PROGRAMMING_OPTIONS,
+        default='programmed'
     )
 
     # Técnico asignado

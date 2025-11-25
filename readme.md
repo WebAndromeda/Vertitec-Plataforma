@@ -26,6 +26,7 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 
 ### 👷 Técnico
 - Ver agendamientos asignados y pendientes.
+- Crear, ver, editar y eliminar agendamientos bajo el termino "No programado"
 - Iniciar agendamientos y diligenciar formularios de servicio.
 - Registrar observaciones, recomendaciones y checklist técnico.
 
@@ -68,6 +69,19 @@ Esta plataforma permite a técnicos registrar los detalles de mantenimiento real
 - Formulario puertas
 - Envio de correos (Notficaciones)
 - Estilos responsive en todos los CRUD
+
+---
+
+## Agendamientos
+- Se puede usar Formsets de Django para crear varios agendamientos de una vez
+- ¿Como se genera el agendamiento recursivo? 
+- Si el día no existe, ajustas al último día del mes. 
+- Ejemplo: 
+- 30 enero → 28 febrero (o 29 si es bisiesto), 30 marzo, etc. 
+- 31 enero → 28/29 febrero, 31 marzo, 30 abril, etc. 
+- Esto es lo que hacen algunos calendarios (ej. Google Calendar). 
+- Ventaja: siempre hay un agendamiento cada mes. 
+- Desventaja: la fecha no siempre coincide en número exacto.
 
 ---
 
@@ -126,3 +140,10 @@ Técnico: tech / chatgpt22
 
 Cliente: cliente / chatgpt22
 
+
+
+> Decoradores ubicados en:
+utils/decorators.py
+
+> Pasar variables globales a los templates para no hacerlo en cada "render()"
+usuarios/context_processors.py

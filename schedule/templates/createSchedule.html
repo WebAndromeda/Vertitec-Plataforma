@@ -10,132 +10,198 @@
         </div>
     </div>
     
+    <!-- Formulario para administradores -->
+    {% if user.groups.all.0.name == "Administrador" %}
+        <!-- Titulos de la tabla -->
+        <div class="tableData">
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Recurrencia</p>
+                </div>
+                <div class="col-3">
+                    <p class="titlesTable">Edificio</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-3">
+                    <p class="titlesTable">Técnico</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                    <p style="font-size: 0.85em;">Marca esta casilla si el agendamiento ya fue realizado</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Enviar</p>
+                </div>
+            </div>
+        
 
-    <!-- Titulos de la tabla -->
-    <div class="tableData">
-        <div class="row containerTitlesTable">
-            <div class="col-1">
-                <p class="titlesTable">Recurrencia</p>
+            <!-- Mostrar messages de django (si los hay) -->
+            {% if messages %}
+            <div>
+                {% for message in messages %}
+                <div class="alert 
+                    {% if message.tags == 'error' %}alert-danger
+                    {% elif message.tags == 'warning' %}alert-warning
+                    {% elif message.tags == 'success' %}alert-success
+                    {% else %}alert-info{% endif %}"
+                    style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-            <div class="col-3">
-                <p class="titlesTable">Edificio</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Torre</p>
-            </div>
-            <div class="col-3">
-                <p class="titlesTable">Técnico</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Fecha</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Hora</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Estado</p>
-                <p style="font-size: 0.85em;">Marca esta casilla si el agendamiento ya fue realizado</p>
-            </div>
-            <div class="col-1">
-                <p class="titlesTable">Enviar</p>
-            </div>
+            {% endif %}
+
+            <!-- Mostrar errores no ligados a campo (form.non_field_errors) -->
+            {% if forms.non_field_errors %}
+                <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    {% for err in forms.non_field_errors %}
+                        <p>{{ err }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="row containerInfoTable">
+                    <div class="col-1 divData">
+                    {{ forms.recurrence }}
+                    {{ forms.recurrence.errors }}
+                    </div>
+
+                    <div class="col-3 divData">
+                    {{ forms.client }}
+                    <input type="hidden" id="buildingId" name="building_id">
+                    {{ forms.client.errors }}
+                    </div>
+
+                    <div class="col-1 divData">
+                    {{ forms.tower }}
+                    {{ forms.tower.errors }}
+                    </div>
+
+                    <div class="col-3 divData">
+                    {{ forms.technician }}
+                    {{ forms.technician.errors }}
+                    </div>
+
+                    <div class="col-1 divData">
+                    {{ forms.date }}
+                    {{ forms.date.errors }}
+                    </div>
+
+                    <div class="col-1 divData">
+                    {{ forms.hour }}
+                    {{ forms.hour.errors }}
+                    </div>
+
+                    <div class="col-1">
+                    {{ forms.status }}
+                    {{ forms.status.errors }}
+                    </div>
+
+                    <div class="col-1">
+                    <button class="buttonSendForm" type="submit">
+                        {% if update %}Editar{% else %}Crear{% endif %} agendamiento
+                    </button>
+                    </div>
+                </div>
+
+                <!-- Flag oculto para permitir un segundo intento tras advertencia -->
+                {% if confirm_warning %}
+                    <input type="hidden" name="confirm_warning" value="1">
+                {% endif %}
+            </form>
         </div>
-    
+    {% endif %}
 
-{# Mostrar messages de django (si los hay) #}
-{% if messages %}
-  <div>
-    {% for message in messages %}
-      <div class="alert 
-          {% if message.tags == 'error' %}alert-danger
-          {% elif message.tags == 'warning' %}alert-warning
-          {% elif message.tags == 'success' %}alert-success
-          {% else %}alert-info{% endif %}"
-           style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
+
+    <!-- Formulario para técnicos -->
+{% if user.groups.all.0.name == "Técnico" %}
+    <div class="tableData">
+
+        <!-- Mostrar messages de Django (éxitos, advertencias, errores) -->
+        {% if messages %}
+        <div style="margin-bottom: 15px;">
+            {% for message in messages %}
+            <div class="alert 
+                {% if message.tags == 'error' %}alert-danger
+                {% elif message.tags == 'warning' %}alert-warning
+                {% elif message.tags == 'success' %}alert-success
+                {% else %}alert-info{% endif %}"
+                style="padding: 10px; border-radius: 5px;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Mostrar errores no ligados a campo -->
+        {% if forms.non_field_errors %}
+        <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+            {% for err in forms.non_field_errors %}
+                <p>{{ err }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Titulos de la tabla -->
+        <div class="row containerTitlesTable">
+            <div class="col-3"><p class="titlesTable">Edificio</p></div>
+            <div class="col-3"><p class="titlesTable">Torre</p></div>
+            <div class="col-2"><p class="titlesTable">Fecha</p></div>
+            <div class="col-2"><p class="titlesTable">Hora</p></div>
+            <div class="col-2"><p class="titlesTable">Enviar</p></div>
+        </div>
+
+        <!-- Formulario -->
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row containerInfoTable">
+
+                <div class="col-3 divData">
+                    {{ forms.client }}
+                    <input type="hidden" id="buildingId" name="building_id">
+                    {{ forms.client.errors }}
+                </div>
+
+                <div class="col-3 divData">
+                    {{ forms.tower }}
+                    {{ forms.tower.errors }}
+                </div>
+
+                <div class="col-2 divData">
+                    {{ forms.date }}
+                    {{ forms.date.errors }}
+                </div>
+
+                <div class="col-2 divData">
+                    {{ forms.hour }}
+                    {{ forms.hour.errors }}
+                </div>
+
+                <div class="col-2">
+                    <button class="buttonSendForm" type="submit">
+                        {% if update %}Editar{% else %}Crear{% endif %} agendamiento
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flag oculto para permitir un segundo intento tras advertencia -->
+            {% if confirm_warning %}
+                <input type="hidden" name="confirm_warning" value="1">
+            {% endif %}
+        </form>
+    </div>
 {% endif %}
 
-{# Mostrar errores no ligados a campo (form.non_field_errors) #}
-{% if forms.non_field_errors %}
-  <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-    {% for err in forms.non_field_errors %}
-      <p>{{ err }}</p>
-    {% endfor %}
-  </div>
-{% endif %}
-
-<form action="" method="post">
-  {% csrf_token %}
-  <div class="row containerInfoTable">
-    <div class="col-1 divData">
-      {{ forms.recurrence }}
-      {{ forms.recurrence.errors }}
-    </div>
-
-    <div class="col-3 divData">
-      {{ forms.client }}
-      <input type="hidden" id="buildingId" name="building_id">
-      {{ forms.client.errors }}
-    </div>
-
-    <div class="col-1 divData">
-      {{ forms.tower }}
-      {{ forms.tower.errors }}
-    </div>
-
-    <div class="col-3 divData">
-      {{ forms.technician }}
-      {{ forms.technician.errors }}
-    </div>
-
-    <div class="col-1 divData">
-      {{ forms.date }}
-      {{ forms.date.errors }}
-    </div>
-
-    <div class="col-1 divData">
-      {{ forms.hour }}
-      {{ forms.hour.errors }}
-    </div>
-
-    <div class="col-1">
-      {{ forms.status }}
-      {{ forms.status.errors }}
-    </div>
-
-    <div class="col-1">
-      <button class="buttonSendForm" type="submit">
-        {% if update %}Editar{% else %}Crear{% endif %} agendamiento
-      </button>
-    </div>
-  </div>
-
-  {# Flag oculto para permitir un segundo intento tras advertencia #}
-  {% if confirm_warning %}
-    <input type="hidden" name="confirm_warning" value="1">
-  {% endif %}
-</form>
-      
-
-
-        <p class="nota">NOTA: Se puede usar Formsets de Django para esto</p>
-        <p class="nota">Si el día no existe, ajustas al último día del mes. <br>
-            Ejemplo: <br>
-            30 enero → 28 febrero (o 29 si es bisiesto), 30 marzo, etc. <br>
-            31 enero → 28/29 febrero, 31 marzo, 30 abril, etc. <br>
-            Esto es lo que hacen algunos calendarios (ej. Google Calendar). <br>
-            Ventaja: siempre hay un agendamiento cada mes. <br>
-            Desventaja: la fecha no siempre coincide en número exacto.</p>
-        <style>
-            .nota{
-                color: white;
-            }
-        </style>
-
-    </div>
 </center>
 
 <style>
@@ -177,102 +243,102 @@
 </style>
 
 <script>
-// Script de autocompletado del campo cliente / edificio
-document.addEventListener("DOMContentLoaded", function () {
-    const input = document.getElementById("buildingInput");
-    const towerSelect = document.getElementById("id_tower");
+    // Script de autocompletado del campo cliente / edificio
+    document.addEventListener("DOMContentLoaded", function () {
+        const input = document.getElementById("buildingInput");
+        const towerSelect = document.getElementById("id_tower");
 
-    // Crear la lista de sugerencias
-    const suggestionBox = document.createElement("ul");
-    suggestionBox.classList.add("suggestions-list");
+        // Crear la lista de sugerencias
+        const suggestionBox = document.createElement("ul");
+        suggestionBox.classList.add("suggestions-list");
 
-    // Insertamos después del input
-    input.parentNode.appendChild(suggestionBox);
+        // Insertamos después del input
+        input.parentNode.appendChild(suggestionBox);
 
-    input.addEventListener("input", function () {
-        const query = input.value.trim();
-        if (query.length < 2) {
-            suggestionBox.style.display = "none";
-            return;
-        }
+        input.addEventListener("input", function () {
+            const query = input.value.trim();
+            if (query.length < 2) {
+                suggestionBox.style.display = "none";
+                return;
+            }
 
-        fetch(`/building-suggestions/?q=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionBox.innerHTML = "";
-                if (data.length > 0) {
-                    data.forEach(item => {
-                        const li = document.createElement("li");
-                        li.textContent = item.first_name;
+            fetch(`/building-suggestions/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionBox.innerHTML = "";
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const li = document.createElement("li");
+                            li.textContent = item.first_name;
 
-                        // Guardamos también el id del edificio
-                        li.dataset.buildingId = item.id;
+                            // Guardamos también el id del edificio
+                            li.dataset.buildingId = item.id;
 
-                        li.addEventListener("mousedown", function () {
-                            input.value = item.first_name;
-                            suggestionBox.style.display = "none";
+                            li.addEventListener("mousedown", function () {
+                                input.value = item.first_name;
+                                suggestionBox.style.display = "none";
 
-                            // 🔽 Actualizar torres según el edificio seleccionado
-                            const buildingId = li.dataset.buildingId;
-                            fetch(`/tower-suggestions/?building_id=${buildingId}`)
-                                .then(response => response.json())
-                                .then(towers => {
-                                    towerSelect.innerHTML = ""; // limpiar torres previas
+                                // 🔽 Actualizar torres según el edificio seleccionado
+                                const buildingId = li.dataset.buildingId;
+                                fetch(`/tower-suggestions/?building_id=${buildingId}`)
+                                    .then(response => response.json())
+                                    .then(towers => {
+                                        towerSelect.innerHTML = ""; // limpiar torres previas
 
-                                    if (towers.length > 0) {
-                                        const defaultOption = document.createElement("option");
-                                        defaultOption.value = "";
-                                        defaultOption.textContent = "Selecciona una torre";
-                                        towerSelect.appendChild(defaultOption);
+                                        if (towers.length > 0) {
+                                            const defaultOption = document.createElement("option");
+                                            defaultOption.value = "";
+                                            defaultOption.textContent = "Selecciona una torre";
+                                            towerSelect.appendChild(defaultOption);
 
-                                        towers.forEach(tower => {
+                                            towers.forEach(tower => {
+                                                const option = document.createElement("option");
+                                                option.value = tower.id;
+                                                option.textContent = tower.name;
+                                                towerSelect.appendChild(option);
+                                            });
+                                        } else {
                                             const option = document.createElement("option");
-                                            option.value = tower.id;
-                                            option.textContent = tower.name;
+                                            option.value = "";
+                                            option.textContent = "Sin torres disponibles";
                                             towerSelect.appendChild(option);
-                                        });
-                                    } else {
-                                        const option = document.createElement("option");
-                                        option.value = "";
-                                        option.textContent = "Sin torres disponibles";
-                                        towerSelect.appendChild(option);
-                                    }
-                                });
+                                        }
+                                    });
+                            });
+
+                            suggestionBox.appendChild(li);
                         });
+                        suggestionBox.style.display = "block";
+                    } else {
+                        suggestionBox.style.display = "none";
+                    }
+                });
+        });
 
-                        suggestionBox.appendChild(li);
-                    });
-                    suggestionBox.style.display = "block";
-                } else {
-                    suggestionBox.style.display = "none";
-                }
-            });
+        // Ocultar sugerencias si se hace clic afuera
+        document.addEventListener("click", function (e) {
+            if (e.target !== input && !suggestionBox.contains(e.target)) {
+                suggestionBox.style.display = "none";
+            }
+        });
     });
-
-    // Ocultar sugerencias si se hace clic afuera
-    document.addEventListener("click", function (e) {
-        if (e.target !== input && !suggestionBox.contains(e.target)) {
-            suggestionBox.style.display = "none";
-        }
-    });
-});
 </script>
 
 
 <script>
-// Script para confirmar que se creara un agendamiento con una fecha u hora anterior a la actual
-document.querySelector("form").addEventListener("submit", function(e) {
-    let date = document.querySelector("input[name='date']").value;
-    let hour = document.querySelector("input[name='hour']").value;
-    if (date && hour) {
-        let selected = new Date(date + "T" + hour);
-        let now = new Date();
-        if (selected < now) {
-            if (!confirm("⚠️ Estás agendando en una fecha u hora pasada, ¿Quieres continuar?")) {
-                e.preventDefault();
+    // Script para confirmar que se creara un agendamiento con una fecha u hora anterior a la actual
+    document.querySelector("form").addEventListener("submit", function(e) {
+        let date = document.querySelector("input[name='date']").value;
+        let hour = document.querySelector("input[name='hour']").value;
+        if (date && hour) {
+            let selected = new Date(date + "T" + hour);
+            let now = new Date();
+            if (selected < now) {
+                if (!confirm("⚠️ Estás agendando en una fecha u hora pasada, ¿Quieres continuar?")) {
+                    e.preventDefault();
+                }
             }
         }
-    }
-});
+    });
 </script>
 {% endblock %}

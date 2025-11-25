@@ -1,32 +1,67 @@
 """
 Objetivo:
-- Modificar el comportamiento de funciones (como vistas) usando decoradores.
+- Permitir que las vistas puedan restringir el acceso a uno o varios roles (grupos) de Django.
+- Reemplazar la necesidad de crear un decorador por cada grupo, haciéndolo escalable.
 
 Cómo funciona:
-- @group_required('Administrador') es un decorador que se pone encima de una vista.
-- Al ejecutarse la vista, este decorador verifica si el usuario está en el grupo adecuado.
-- Si no está autenticado, lo redirige al login.
-- Si está autenticado pero no tiene el grupo, retorna un HttpResponseForbidden
-"""
-from django.http import HttpResponseForbidden
-from functools import wraps
+- Se utiliza @roles_required('Administrador') encima de una vista.
+- También soporta múltiples roles: @roles_required('Administrador', 'Técnico')
+- Cuando la vista se ejecuta:
+    1. Si el usuario NO está autenticado → se redirige al login.
+    2. Si está autenticado pero NO pertenece a NINGUNO de los roles requeridos → retorna HttpResponseForbidden.
+    3. Si pertenece a al menos un rol válido → se permite ejecutar la vista.
 
-# Decorador para verificar roles
-def group_required(group_name):
+Ventajas:
+- Evita crear decoradores repetidos como admin_required, technician_required, etc.
+- Escalable: si necesitas 10 roles diferentes, este decorador los soporta todos.
+- Limpio y fácil de entender en las vistas.
+"""
+
+from functools import wraps
+from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
+from django.conf import settings
+
+def roles_required(*roles):
+    """
+    Decorador que valida si el usuario pertenece a al menos uno
+    de los roles (grupos) especificados.
+
+    Ejemplos de uso:
+    @roles_required('Administrador')
+    @roles_required('Administrador', 'Técnico')
+    """
+
     def decorator(view_func):
         @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
+        def wrapper(request, *args, **kwargs):
+
             user = request.user
+
+            # 1. Usuario no autenticado → enviarlo al login
             if not user.is_authenticated:
-                from django.conf import settings
-                from django.shortcuts import redirect
-                return redirect(settings.LOGIN_URL) 
-            if user.groups.filter(name=group_name).exists():
+                return redirect(settings.LOGIN_URL)
+
+            # 2. Obtener roles (grupos) del usuario
+            user_roles = user.groups.values_list('name', flat=True)
+
+            # 3. Validar si pertenece a alguno de los roles permitidos
+            if any(role in user_roles for role in roles):
                 return view_func(request, *args, **kwargs)
+
+            # 4. Usuario autenticado pero sin permisos → prohibido
             return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
-        return _wrapped_view
+
+        return wrapper
     return decorator
 
-admin_required = group_required('Administrador')
-technician_equired = group_required('Técnico')
-building_equired = group_required('Cliente')
+
+"""
+Decoradores prácticos:
+- Se crean alias para no tener que escribir roles_required() a mano en cada vista.
+- Estos alias NO son necesarios, pero ayudan a hacer el código más legible.
+"""
+
+admin_required = roles_required("Administrador")
+technician_required = roles_required("Técnico")
+building_required = roles_required("Cliente")  

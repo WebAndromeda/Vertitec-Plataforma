@@ -8,6 +8,7 @@ from buildings.models import buildings, towers
 from utils.decorators import admin_required
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 
 # Crear repuestos y ver repuestos
@@ -19,7 +20,7 @@ def listParts(request):
     building_obj = None
     listado_completo = True
 
-    # 🔹 Filtrar por edificio si se pasa ID
+    # Filtrar por edificio si se pasa el ID
     if building_id:
         building_user = get_object_or_404(User, id=building_id)
         building_obj = get_object_or_404(buildings, user=building_user)
@@ -32,13 +33,19 @@ def listParts(request):
     else:
         repuestos = replacementParts.objects.all().select_related("tower", "building")
 
-    # 🔹 Crear nuevo repuesto
+    # Importante: se hace después del filtrado
+    paginator = Paginator(repuestos, 10)  # Numero de repuestos por página
+    page_number = request.GET.get("page") 
+    repuestos_paginados = paginator.get_page(page_number)   
+
+    # Crear nuevo repuesto
     if request.method == "POST":
         form = replacementPartsForm(request.POST)
+
         if form.is_valid():
             nuevo_repuesto = form.save(commit=False)
 
-            # Asociar edificio correspondiente
+            # Asociar edificio
             if building_user:
                 nuevo_repuesto.building = building_user
 
@@ -46,24 +53,46 @@ def listParts(request):
             if not nuevo_repuesto.approved_status:
                 nuevo_repuesto.approved_status = "pendiente"
 
+            # Calcular precio_total
+            nuevo_repuesto.precio_total = (
+                nuevo_repuesto.cantidad * nuevo_repuesto.precio_unitario
+            )
+
+            # Asignar status_Payment según el total
+            if nuevo_repuesto.precio_total >= 1000000:
+                nuevo_repuesto.status_Payment = "pendiente_anticipo"
+            else:
+                nuevo_repuesto.status_Payment = "no_aplica"
+
             nuevo_repuesto.save()
-            messages.success(request, f"✅ Repuesto '{nuevo_repuesto.nameItem}' creado correctamente.")
+
+            messages.success(
+                request,
+                f"✅ Repuesto '{nuevo_repuesto.nameItem}' creado correctamente."
+            )
+
             return redirect(f"{reverse('listParts')}?id={building_user.id}")
+
         else:
-            print(form.errors)  # 🔍 Para depurar si ocurre un error
-            messages.error(request, "❌ Hubo un error al crear el repuesto. Revisa los campos.")
+            print(form.errors)
+            messages.error(
+                request,
+                "❌ Hubo un error al crear el repuesto. Revisa los campos."
+            )
+
     else:
         form = replacementPartsForm()
 
-    # 🔹 Limitar torres según el edificio seleccionado
+    # Limitar torres según el edificio seleccionado
     if building_obj:
         form.fields["tower"].queryset = towers.objects.filter(building=building_obj)
 
     return render(request, "listParts.html", {
-        "repuestos": repuestos,
+        "repuestos": repuestos_paginados,  # <- enviar los paginados
         "building": building_user,
         "form": form,
         "listado_completo": listado_completo,
+        "paginator": paginator,
     })
 
 
@@ -77,43 +106,21 @@ def listPartsClient(request):
         .select_related("tower", "building")
     )
 
+    from django.core.paginator import Paginator
+
+    paginator = Paginator(repuestos, 10)  # 10 por página
+    page_number = request.GET.get("page")  
+    repuestos_paginados = paginator.get_page(page_number)
+
     es_cliente = user.groups.filter(name="Cliente").exists()
 
     return render(request, "listParts.html", {
-        "repuestos": repuestos,
+        "repuestos": repuestos_paginados,   # ← enviar paginados
         "building": user,
         "listado_completo": False,
-        "es_cliente": es_cliente,  # 👈 esta variable la usas en el template
+        "es_cliente": es_cliente,
+        "paginator": paginator,  # opcional para más control
     })
-
-# Vista para que el cliente pueda cambiar el estado, aprobar o rechazar un repuesto
-@login_required
-def toggle_approval(request, part_id, action):
-    # Buscar el repuesto que pertenece al cliente logueado
-    repuesto = get_object_or_404(replacementParts, id=part_id, building=request.user)
-
-    # Diccionario de acciones válidas
-    VALID_ACTIONS = {
-        "aprobar": ("aprobado", f"✅ Has aprobado el repuesto '{repuesto.nameItem}'."),
-        "rechazar": ("rechazado", f"❌ Has rechazado el repuesto '{repuesto.nameItem}'."),
-    }
-
-    # Verificamos si la acción enviada es válida
-    if action in VALID_ACTIONS:
-        nuevo_estado, mensaje = VALID_ACTIONS[action]
-        repuesto.approved_status = nuevo_estado
-        repuesto.save()
-        # Usamos el tipo de mensaje adecuado
-        if action == "aprobar":
-            messages.success(request, mensaje)
-        else:
-            messages.warning(request, mensaje)
-    else:
-        # Acción no reconocida
-        messages.error(request, "⚠️ Acción no válida. Intenta nuevamente.")
-
-    # Redirige a la lista de repuestos del cliente
-    return redirect("listPartsClient")
 
 
 # Editar repuesto
@@ -138,13 +145,12 @@ def editPart(request, part_id):
         form = replacementPartsForm(instance=repuesto)
         form.fields["tower"].queryset = towers.objects.filter(building=building_obj)
 
-    return render(request, "createPart.html", {
+    return render(request, "editPart.html", {
         "form": form,
         "building": building,
         "repuesto": repuesto,
         "update": True
     })
-
 
 
 # Eliminar repuesto
