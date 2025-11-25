@@ -10,12 +10,22 @@
 <center>
     <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <div class="containerFilter row mb-3 mt-5">
-        <div class="col-6">
+        <div class="col-4">
             {% if building %}
                 <h1 class="titleText">Repuestos de {{ building.first_name }}</h1>
             {% else %}
                 <h1 class="titleText">Repuestos</h1>
             {% endif %}
+        </div>
+        <div class="col-8">
+            <form method="get">
+                {% csrf_token %}
+                {{ filters.fecha_inicio }}
+                {{ filters.fecha_fin }}
+                {{ filters.status_Install }}
+
+                <button type="submit" class="botonEditar">Filtrar</button>
+            </form>
         </div>
     </div>
     
@@ -27,7 +37,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
 
     <!-- Si se quiere ver todos los repuestos -->
     {% if listado_completo == True %}
@@ -225,13 +234,25 @@
             <!-- Paginación -->
             <div>
                 {% if repuestos.has_previous %}
-                    <a href="?id={{ building.id }}&page={{ repuestos.previous_page_number }}" class="botonEditar">Anterior</a>
+                    <a href="?{% for key, value in request.GET.items %}
+                                {% if key != 'page' %}
+                                    {{ key }}={{ value }}&
+                                {% endif %}
+                            {% endfor %}
+                            page={{ repuestos.previous_page_number }}" 
+                    class="botonEditar">Anterior</a>
                 {% endif %}
 
                 <span class="botonEditar">{{ repuestos.number }}</span>
 
                 {% if repuestos.has_next %}
-                    <a href="?id={{ building.id }}&page={{ repuestos.next_page_number }}" class="botonEditar">Siguiente</a>
+                    <a href="?{% for key, value in request.GET.items %}
+                                {% if key != 'page' %}
+                                    {{ key }}={{ value }}&
+                                {% endif %}
+                            {% endfor %}
+                            page={{ repuestos.next_page_number }}" 
+                    class="botonEditar">Siguiente</a>
                 {% endif %}
             </div>
             <br>

@@ -12,6 +12,7 @@ class ReplacementPartsFilterForm(forms.Form):
         }),
         label="Desde"
     )
+
     fecha_fin = forms.DateField(
         required=False,
         widget=forms.DateInput(attrs={
@@ -26,27 +27,6 @@ class ReplacementPartsFilterForm(forms.Form):
         required=False,
         widget=forms.Select(attrs={"class": "inputForm"}),
         label="Estado instalación"
-    )
-
-    status_Payment = forms.ChoiceField(
-        choices=[('', '---------')] + replacementParts.statusPayment,
-        required=False,
-        widget=forms.Select(attrs={"class": "inputForm"}),
-        label="Estado pago"
-    )
-
-    tecnico = forms.ModelChoiceField(
-        queryset=User.objects.filter(groups__name="Técnico"),
-        required=False,
-        widget=forms.Select(attrs={"class": "inputForm"}),
-        label="Técnico"
-    )
-
-    edificio = forms.ModelChoiceField(
-        queryset=User.objects.filter(groups__name="Cliente"),
-        required=False,
-        widget=forms.Select(attrs={"class": "inputForm"}),
-        label="Edificio"
     )
 
 
@@ -87,4 +67,3 @@ class replacementPartsForm(forms.ModelForm):
             cleaned_data["precio_total"] = cantidad * precio_unitario
 
         return cleaned_data
-

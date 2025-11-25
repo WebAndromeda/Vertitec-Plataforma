@@ -375,6 +375,8 @@
                 </div> 
             {% endfor %}
             <br>
+            
+            <!-- Paginación -->
             <div>
                 {% if schedule.has_previous %}
                     <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>

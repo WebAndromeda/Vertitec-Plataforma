@@ -233,6 +233,8 @@
         </div>
     {% endfor %}
         <br>
+        
+        <!-- Paginación -->
         <div>
             {% if buildingList.has_previous %}
                 <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ buildingList.previous_page_number }}" class="botonEditar">Anterior</a>
