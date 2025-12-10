@@ -14,6 +14,11 @@ from datetime import datetime, timedelta
 from django import forms
 
 
+
+
+
+
+
 # Crear opciones para seleccionar la torre del edificio seleccionado
 def tower_suggestions(request):
     building_id = request.GET.get("building_id")
@@ -68,6 +73,7 @@ def building_suggestionsS(request):
 @login_required
 def listSchedule(request):
     scheduleModel = schedule.objects.all().order_by('-date', 'hour')
+    server_time = timezone.localtime().strftime("%I:%M")
 
     # Aplicar filtros si el formulario es válido
     form = ScheduleFilterForm(request.GET or None)
@@ -89,14 +95,10 @@ def listSchedule(request):
             scheduleModel = scheduleModel.filter(
                 tower__building__user__first_name__icontains=building_name
             )
-        if status == "true":
-            scheduleModel = scheduleModel.filter(status=True)
-        elif status == "false":
-            scheduleModel = scheduleModel.filter(status=False)
+            
+        if status:
+            scheduleModel = scheduleModel.filter(status=status)
 
-        # ----------------------------
-        # FILTRO NUEVO: programmed
-        # ----------------------------
         if programmed:  
             scheduleModel = scheduleModel.filter(programmed=programmed)
 
@@ -116,6 +118,7 @@ def listSchedule(request):
     return render(request, 'listSchedule.html', {
         "schedule": page_obj,  # pasamos page_obj al template
         "form": form,
+        "server_time": server_time,
     })
 
 
@@ -144,7 +147,7 @@ def createSchedule(request):
                 sched.programmed = "not_programmed"
                 sched.recurrence = "single"
                 sched.technician = request.user
-                sched.status = False
+                sched.status = "to_be_done"
 
             sched.save()
 
@@ -159,7 +162,7 @@ def createSchedule(request):
                             tower=sched.tower,
                             date=new_date,
                             hour=sched.hour,
-                            status=False,
+                            status="to_be_done",
                             recurrence=sched.recurrence,
                             technician=sched.technician,
                             programmed=sched.programmed
@@ -171,7 +174,7 @@ def createSchedule(request):
                             tower=sched.tower,
                             date=new_date,
                             hour=sched.hour,
-                            status=False,
+                            status="to_be_done",
                             recurrence=sched.recurrence,
                             technician=sched.technician,
                             programmed=sched.programmed
@@ -223,14 +226,25 @@ def editSchedule(request):
 
 
 # Vista para eliminar un agendamiento
-@admin_required
+@roles_required("Administrador", "Técnico")
 def deleteSchedule(request):
     schedule_id = request.GET.get("id")
 
-    if schedule_id:
-        scheduleDelete = get_object_or_404(schedule, id=schedule_id)
-        scheduleDelete.delete()
+    if not schedule_id:
+        messages.error(request, "❌ No se recibió el ID del agendamiento.")
+        return redirect('listSchedule')
 
-    messages.success(request, f"🗑️ El agendamiento fue eliminado correctamente. ")
+    sched = get_object_or_404(schedule, id=schedule_id)
 
+    # ---------------------------------------
+    # 🚨 Validar si el agendamiento tiene reporte
+    # ---------------------------------------
+    if hasattr(sched, "report"):
+        messages.error(request, "❌ No puedes eliminar este agendamiento porque ya tiene un reporte asociado.")
+        return redirect('listSchedule')
+
+    # Si NO existe un reporte → se puede eliminar
+    sched.delete()
+
+    messages.success(request, "🗑️ El agendamiento fue eliminado correctamente.")
     return redirect('listSchedule')

@@ -1,0 +1,67 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
+
+    <!-- Mostrar messages de django (si los hay) -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="container-fluid container_content">
+        <div class="container_form"> 
+            <h1 class="titleText">Reporte de {{ schedule.client }}</h1>
+
+            <!-- Mostrar errores no ligados a campo (form.non_field_errors) -->
+            {% if forms.non_field_errors %}
+                <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    {% for err in forms.non_field_errors %}
+                        <p>{{ err }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form action="" method="post">
+                <div class="row">
+                    <div class="col-6">
+                        {% csrf_token %}
+                        <label for="" class="labelInputs">Fecha</label> <br>
+                        <p class="infoTable">{{ schedule.date }}</p> <br> 
+                              
+                        <label for="" class="labelInputs">Hora entrada</label> <br>
+                        <p class="infoTable">{{ report.check_in_time }}</p> <br>
+
+                        <label for="" class="labelInputs">Hora salida</label> <br>
+                        <p class="infoTable">Hora en la que se envie el reporte</p> <br>
+                        
+                        <label for="" class="labelInputs">Observaciones generales</label> <br>
+                        {{ form.general_observations }} <br> <br> 
+                    </div>
+
+                    <div class="col-6"> 
+                        <label for="" class="labelInputs">Hora programada</label> <br>
+                        <p class="infoTable">{{ schedule.hour }}</p> <br>
+
+                        <label for="" class="labelInputs">Tiempo empleado</label> <br>
+                        <p class="infoTable">Se calcula automaticamente</p> <br>
+                        
+                        <label for="" class="labelInputs">Recomendaciones especiales</label> <br>
+                        {{ form.special_recommendations }} <br> <br> 
+                    </div>
+                </div>  
+                <button class="buttonSendForm" type="submit" onclick="return confirm('Vas a terminar este reporte a las {{ server_time }} enviaras tambien el PDF al edificio y a Vertitec ¿Continuar? ');">Enviar reporte</button> <br><br>    
+            </form>
+
+            <!-- Flag oculto para permitir un segundo intento tras advertencia -->
+            {% if confirm_warning %}
+                <input type="hidden" name="confirm_warning" value="1">
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

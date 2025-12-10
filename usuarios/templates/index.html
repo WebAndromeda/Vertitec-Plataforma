@@ -1,9 +1,27 @@
 {% extends 'layouts/navbar.html' %}
+{% load static %}
 
 {% block content %}
 <center>
     <br>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
     <h1 class="titleText">Bienvenido al inicio de la plataforma</h1>
-    <h3 class="titleText">Mas contenido aqui próximamente</h3>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <p class="titlesTable">Total de Agendamientos</p>
+                <p class="titlesTable">{{ total_agendamientos }}</p>
+            </div>
+            <div class="col-4">
+                <p class="titlesTable">Reportes en Producción</p>
+                <p class="titlesTable">{{ reportes_en_produccion }}</p>
+            </div>
+            <div class="col-4">
+                <p class="titlesTable">Reportes Completados</p>
+                <p class="titlesTable">{{ reportes_completados }}</p>
+            </div>
+        </div>
+    </div>
 </center>
 {% endblock %}

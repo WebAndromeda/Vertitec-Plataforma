@@ -35,7 +35,6 @@
                 </div>
                 <div class="col-1">
                     <p class="titlesTable">Estado</p>
-                    <p style="font-size: 0.85em;">Marca esta casilla si el agendamiento ya fue realizado</p>
                 </div>
                 <div class="col-1">
                     <p class="titlesTable">Enviar</p>
@@ -102,12 +101,12 @@
                     {{ forms.hour.errors }}
                     </div>
 
-                    <div class="col-1">
+                    <div class="col-1 divData">
                     {{ forms.status }}
                     {{ forms.status.errors }}
                     </div>
 
-                    <div class="col-1">
+                    <div class="col-1 divData">
                     <button class="buttonSendForm" type="submit">
                         {% if update %}Editar{% else %}Crear{% endif %} agendamiento
                     </button>
@@ -187,7 +186,7 @@
                     {{ forms.hour.errors }}
                 </div>
 
-                <div class="col-2">
+                <div class="col-2 divData">
                     <button class="buttonSendForm" type="submit">
                         {% if update %}Editar{% else %}Crear{% endif %} agendamiento
                     </button>

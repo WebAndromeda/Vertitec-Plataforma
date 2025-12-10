@@ -147,3 +147,42 @@ utils/decorators.py
 
 > Pasar variables globales a los templates para no hacerlo en cada "render()"
 usuarios/context_processors.py
+
+
+
+
+BORRAR
+BORRAR
+BORRAR
+BORRAR
+
+Hecho
+- Al eliminar un reporte, el agendamiento vuelve a "Por realizar"
+- Que funcione la creacion de reporte
+- Quitar tecnico de los datos de reportes desde la vista de tecnico, hacer tambien que muestre solo los datos correspondientes a ese tecnico, verificar si ya funciona tambien con los agendamientos no programados
+- En los reportes, añadir nombre del edificio 
+- Quitar en el agendamiento desde cliente, la columna de edificio
+- Cuadrar vista de reportes para clientes, ocultando la columna de "Edificio"
+- Viendo como cliente los reportes, aparecen todos, en lugar de los que le corresponden 
+- Agendamientos y reportes, si el tecnico aparece, debe aparecer con su nombre + apellido, no el nombre de usuario
+- Bug no filtros en los repuestos desde la vista de cliente
+- Filtros reportes
+- Paginacion reportes
+- Al crear, editar o eliminar un reporte, que la plataforma avise como lo hace con las torres
+- Hacer que no se pueda borrar un agendamiento si ya existe su reporte
+- En el listado de agendamientos, los agendamientos ya realizados no deben poder editarse, solo eliminarse 
+
+Pendiente:
+- revisar la parte de editar un reporte (ojo, reporte no agendamiento)
+
+Proximamente
+- En la pagina de inicio, mostrar cuantos agendamientos hay, cuantos se han hecho, cuantos estan en produccion y datos de ese estilo
+- Genera el PDF con la info (Basico)
+- Enviar
+- Falta añadir el campo de supuesta hora de entrada para los reportes, para comparar la hora en la que tenia que entrar con la hora en la que realemente entro el tecnico
+
+- Impedir que dos torres puedan tener el mismo nombre 
+BORRAR
+BORRAR
+BORRAR
+BORRAR

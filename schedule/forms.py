@@ -29,7 +29,7 @@ class ScheduleFilterForm(forms.Form):
         widget=forms.Select(attrs={"class": "inputForm"})
     )
 
-    # Nombre del edificio (texto libre)
+    # Nombre del edificio
     building = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -39,24 +39,27 @@ class ScheduleFilterForm(forms.Form):
         })
     )
 
-    # Estado (status: BooleanField)
+    # NUEVO STATUS usando el modelo actual
     STATUS_CHOICES = [
-        ("", "Todos"),         # No aplica filtro
-        ("true", "Realizado"),
-        ("false", "Por realizar"),
+        ("", "Todos"),                 # Sin filtro
+        ("to_be_done", "Por realizar"),
+        ("in_production", "En producción"),
+        ("complete", "Realizado"),
     ]
+    
     status = forms.ChoiceField(
         choices=STATUS_CHOICES,
         required=False,
         widget=forms.Select(attrs={"class": "inputForm"})
     )
 
-    # Programado o no programado
+    # Programado / No programado
     PROGRAMMED_CHOICES = [
-        ("", "Todos"),                # Sin filtro
+        ("", "Todos"),
         ("programmed", "Programado"),
         ("not_programmed", "No programado"),
     ]
+
     programmed = forms.ChoiceField(
         choices=PROGRAMMED_CHOICES,
         required=False,
@@ -67,6 +70,7 @@ class ScheduleFilterForm(forms.Form):
 
 # Formulario para crear / editar un agendamiento
 class ScheduleForm(forms.ModelForm):
+
     client = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'inputForm',
@@ -89,32 +93,34 @@ class ScheduleForm(forms.ModelForm):
             'tower': forms.Select(attrs={'class': 'inputForm'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'inputForm'}),
             'hour': forms.TimeInput(attrs={'type': 'time', 'class': 'inputForm'}),
-            'status': forms.CheckboxInput(attrs={'class': 'inputForm'}),
+            'status': forms.Select(attrs={'class': 'inputForm'}),  # CAMBIADO
             'recurrence': forms.Select(attrs={'class': 'inputForm'}),
         }
 
     def __init__(self, *args, **kwargs):
-        # FIX PARA EL KEYERROR
+        # Se recibe self.user desde las vistas
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Si por alguna razón no viene user, no ejecutar nada más
         if not self.user:
             return
 
-        # Filtrar técnicos y torres
+        # Filtrar técnicos
         self.fields['technician'].queryset = User.objects.filter(groups__name='Técnico').order_by('first_name')
+
+        # Torres disponibles
         self.fields['tower'].queryset = towers.objects.all()
 
-        # Si se está editando, colocar el nombre del cliente
+        # Si se está editando, cargar el nombre del cliente
         if self.instance and self.instance.pk and not self.data:
             self.fields['client'].initial = self.instance.client.first_name
 
-        # Si es técnico, ocultar campos que no debe ver
+        # Si es técnico → ocultar campos que no debe editar
         if self.user.groups.filter(name='Técnico').exists():
             for field in ['recurrence', 'technician', 'status']:
                 self.fields.pop(field)
 
+    # Validación del cliente
     def clean_client(self):
         nombre = self.cleaned_data['client'].strip()
         try:
@@ -122,9 +128,11 @@ class ScheduleForm(forms.ModelForm):
         except User.DoesNotExist:
             raise forms.ValidationError("Cliente no válido, selecciona uno de la lista.")
 
+    # Validación de conflictos de horario
     def clean(self):
         cleaned_data = super().clean()
-        technician = cleaned_data.get('technician') or self.user  # si es técnico, se asigna self.user
+
+        technician = cleaned_data.get('technician') or self.user
         date = cleaned_data.get('date')
         hour = cleaned_data.get('hour')
 
@@ -137,17 +145,20 @@ class ScheduleForm(forms.ModelForm):
         conflict_qs = schedule.objects.filter(technician=technician, date=date, hour=hour)
         if self.instance.pk:
             conflict_qs = conflict_qs.exclude(pk=self.instance.pk)
+
         if conflict_qs.exists():
             raise forms.ValidationError(
                 f"❌ El técnico {technician.first_name} ya tiene un agendamiento a esa hora."
             )
 
-        # Advertencia si hay otro a menos de una hora
+        # Advertencias por citas cercanas
         nearby = schedule.objects.filter(technician=technician, date=date).exclude(hour=hour)
         advertencias = []
+
         for other in nearby:
             other_dt = datetime.combine(other.date, other.hour)
             diff_seconds = abs((other_dt - new_dt).total_seconds())
+
             if diff_seconds < 3600:
                 advertencias.append(other.hour.strftime('%H:%M'))
 

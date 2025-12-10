@@ -1,0 +1,490 @@
+{% extends 'layouts/navbar.html' %}
+{% load static %}
+
+{% block content %}
+<center>
+    <h1 class="infoTable mt-3" >¡Hola {{ user.first_name }} {{ user.last_name }}! Bienvenido de nuevo - Rol: {{ user.groups.all.0.name|default:"Sin Rol" }}</h1>
+    <div class="containerFilter row mb-3 mt-5">
+        <div class="col-4">
+            <h1 class="titleText">Reportes (Primero en producción)</h1>
+        </div>
+        <div class="col-8">
+            <!-- Filtros para adminitrador -->
+            {% if user.groups.all.0.name == "Administrador"%}
+                <form method="get">
+                    {{ form.programmed }}
+                    {{ form.start_date }} 
+                    {{ form.end_date }}
+                    {{ form.status }}
+                    {{ form.technician }}
+                    {{ form.building }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
+                    <button type="submit" class="botonEditar">Filtrar</button>
+                </form>
+            {% endif %}
+
+            <!-- Filtros para tecnico -->
+            {% if user.groups.all.0.name == "Técnico" %}
+                <form method="get">
+                    {{ form.programmed }}
+                    {{ form.start_date }} 
+                    {{ form.end_date }}
+                    {{ form.status }}
+                    {{ form.building }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
+                    <button type="submit" class="botonEditar">Filtrar</button>
+                </form>
+            {% endif %}
+
+            <!-- Filtros para adminitrador -->
+            {% if user.groups.all.0.name == "Cliente" %}
+                <form method="get">
+                    {{ form.start_date }} 
+                    {{ form.end_date }}
+                    {{ form.status }}
+                    <ul id="suggestions" class="suggestions-list"></ul>
+                    <button type="submit" class="botonEditar">Filtrar</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+        
+    <script>    
+        const input = document.querySelector('input[name="building"]');
+        const suggestionsList = document.getElementById('suggestions');
+    
+        input.addEventListener('input', () => {
+            const query = input.value;
+        
+            if (query.length < 2) {
+                suggestionsList.style.display = 'none';
+                suggestionsList.innerHTML = '';
+                return;
+            }
+        
+            fetch(`/building_suggestionsB/?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = '';
+            
+                if (data.length > 0) {
+                    data.forEach(username => {
+                        const li = document.createElement('li');
+                        li.textContent = username;
+                        li.addEventListener('click', () => {
+                            input.value = username;
+                            suggestionsList.innerHTML = '';
+                            suggestionsList.style.display = 'none';
+                        });
+                        suggestionsList.appendChild(li);
+                    });
+                    suggestionsList.style.display = 'block';
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+        });
+    
+        // Cierra la lista si se hace clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('form')) {
+                suggestionsList.style.display = 'none';
+            }
+        });
+    </script>
+    <style>
+        /* Contenedor del formulario */
+        form {
+            position: relative;
+        }
+    
+        /* Lista de sugerencias */
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #111c28;
+            border: 1px solid white;
+            border-top: none;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none; /* Oculto por defecto */
+        }
+    
+        /* Cada opción */
+        .suggestions-list li {
+            padding: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+        }
+    
+        /* Hover en opciones */
+        .suggestions-list li:hover {
+            background-color: #344455;
+        }
+    </style>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+            {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Datos administradores -->
+    {% if user.groups.all.0.name == "Administrador" %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Programación</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora entrada</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora salida</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Tiempo empleado</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Técnico</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Edificio</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Observaciones</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Recomendaciones</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Opciones</p>
+                </div>
+            </div>
+        
+            <!-- Datos -->
+            {% for report in reports %}
+                <div class="row {% if report.schedule.status == 'to_be_done' %} containerInfoTable2 {% elif report.schedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.get_programmed_display }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.date }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_in_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_out_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.time_spent_formatted }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.get_status_display }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.technician.get_full_name }}</p> 
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.client.first_name }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.tower }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.general_observations }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.special_recommendations }}</p>
+                    </div>
+                    
+                        
+                    <div class="col-1">
+                        <!-- Editar reporte -->
+                        <a href="{% url 'createReport' report.schedule.id %}"> 
+                            <button class="botonEditar">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                            </button>
+                        </a>
+                        
+                        <!-- Eliminar reporte -->
+                        <a href="{% url 'deleteReport' report.id %}" onclick="return confirm('¿Estás seguro de eliminar este reporte? El agendamiento volverla al estado Por realizar');"> 
+                            <button class="botonEliminar">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            {% empty %}            
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay reportes registrados.
+                        </p>
+                    </div>
+                </div>  
+            {% endfor %}
+            <br>
+            <!-- Paginación -->
+            <div>
+                {% if reports.has_previous %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.previous_page_number }}">
+                        Anterior
+                    </a>
+                {% endif %}
+
+                <span class="botonEditar">{{ reports.number }}</span>
+
+                {% if reports.has_next %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.next_page_number }}">
+                        Siguiente
+                    </a>
+                {% endif %}
+            </div>         
+            <br><br>    
+        </div>
+    {% endif %}
+
+    <!-- Datos tecnicos -->
+    {% if user.groups.all.0.name == "Técnico" %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Programación</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Edificio</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora entrada</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora salida</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Tiempo empleado</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Observaciones</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Recomendaciones</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Opciones</p>
+                </div>
+            </div>
+        
+            <!-- Datos -->
+            {% for report in reports %}
+                <div class="row {% if report.schedule.status == 'to_be_done' %} containerInfoTable2 {% elif report.schedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.get_programmed_display }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.date }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.client.first_name }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.tower }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_in_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_out_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.time_spent_formatted }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.general_observations }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.special_recommendations }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.get_status_display }}</p>
+                    </div>
+
+                    <div class="col-2 divData">
+                        {% if report.schedule.status == 'in_production' %} 
+                            <!-- Continuar reporte -->
+                            <a href="{% url 'createReport' report.schedule.id %}"> 
+                                <button class="botonEditar">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    Continuar
+                                </button>
+                            </a>
+                        {% else %} 
+                            <p class="infoTable">Finalizado</p>
+                        {% endif %} 
+                    </div>    
+                </div>
+            {% empty %}            
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay reportes registrados.
+                        </p>
+                    </div>
+                </div>  
+            {% endfor %}
+
+            <br>
+            <!-- Paginación -->
+            <div>
+                {% if reports.has_previous %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.previous_page_number }}">
+                        Anterior
+                    </a>
+                {% endif %}
+
+                <span class="botonEditar">{{ reports.number }}</span>
+
+                {% if reports.has_next %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.next_page_number }}">
+                        Siguiente
+                    </a>
+                {% endif %}
+            </div>
+            <br>
+    {% endif %}
+
+
+    <!-- Datos clientes / edificios -->
+    {% if user.groups.all.0.name == "Cliente" %}
+        <!-- Tabla datos -->
+        <div class="tableData">
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-1">
+                    <p class="titlesTable">Fecha</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora entrada</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Hora salida</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Tiempo empleado</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Estado</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Técnico</p>
+                </div>
+                <div class="col-1">
+                    <p class="titlesTable">Torre</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Observaciones</p>
+                </div>
+                <div class="col-2">
+                    <p class="titlesTable">Recomendaciones</p>
+                </div>
+            </div>
+        
+            <!-- Datos -->
+            {% for report in reports %}
+                <div class="row {% if report.schedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.date }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_in_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.check_out_time }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.time_spent_formatted }}</p>
+                    </div>
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.get_status_display }}</p>
+                    </div> 
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ report.schedule.technician.get_full_name }}</p> 
+                    </div> 
+                    <div class="col-1 divData">
+                        <p class="infoTable">{{ report.schedule.tower }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ report.general_observations }}</p>
+                    </div>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ report.special_recommendations }}</p>
+                    </div>
+                </div>
+            {% empty %}            
+                <div class="row containerInfoTable">
+                    <div class="col-12 text-center">
+                        <p class="infoTable" style="font-style: italic; color: gray;">
+                            ⚙️ No hay reportes registrados.
+                        </p>
+                    </div>
+                </div>  
+            {% endfor %}
+
+                        <br>
+            <!-- Paginación -->
+            <div>
+                {% if reports.has_previous %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.previous_page_number }}">
+                        Anterior
+                    </a>
+                {% endif %}
+
+                <span class="botonEditar">{{ reports.number }}</span>
+
+                {% if reports.has_next %}
+                    <a class="botonEditar" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ reports.next_page_number }}">
+                        Siguiente
+                    </a>
+                {% endif %}
+            </div>
+            <br>
+            
+        </div>
+    {% endif %}
+{% endblock %}

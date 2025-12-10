@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Reporte del Agendamiento #{{ schedule.id }}</h1>
+
+    <div class="section">
+        <p><span class="label">Edificio:</span> {{ building.user.first_name }}</p>
+        <p><span class="label">Técnico:</span> {{ technician.first_name }} {{ technician.last_name }}</p>
+        <p><span class="label">Fecha:</span> {{ schedule.date }}</p>
+    </div>
+
+    <div class="section">
+        <p><span class="label">Hora de llegada:</span> {{ report.check_in_time }}</p>
+        <p><span class="label">Hora de salida:</span> {{ report.check_out_time }}</p>
+        <p><span class="label">Tiempo total:</span> {{ report.time_spent }}</p>
+    </div>
+
+    <div class="section">
+        <p><span class="label">Observaciones generales:</span></p>
+        <p>{{ report.general_observations }}</p>
+    </div>
+
+    <div class="section">
+        <p><span class="label">Recomendaciones especiales:</span></p>
+        <p>{{ report.special_recommendations }}</p>
+    </div>
+
+</body>
+</html>

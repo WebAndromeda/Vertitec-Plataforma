@@ -10,34 +10,51 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
-# Listar repuestos
-@admin_required
+@login_required
 def listParts(request):
-    building_id = request.GET.get("id")
+
+    user = request.user
+    es_admin = user.groups.filter(name__in=["Administrador", "Técnico"]).exists()
+    es_cliente = user.groups.filter(name="Cliente").exists()
 
     building_user = None
     building_obj = None
     listado_completo = True
 
-    # Filtrar por edificio si se pasa el ID
-    if building_id:
-        building_user = get_object_or_404(User, id=building_id)
-        building_obj = get_object_or_404(buildings, user=building_user)
-        repuestos = (
-            replacementParts.objects
-            .filter(building=building_user)
-            .select_related("tower", "building")
-        )
-        listado_completo = False
-    else:
-        repuestos = replacementParts.objects.all().select_related("tower", "building")
+    # ----------------------------------
+    #   FILTRO BASE SEGÚN EL ROL
+    # ----------------------------------
+    if es_admin:
+        # Admin puede ver todos o filtrar por ?id=
+        building_id = request.GET.get("id")
 
-    # ------------------------------
+        if building_id:
+            building_user = get_object_or_404(User, id=building_id)
+            building_obj = get_object_or_404(buildings, user=building_user)
+
+            repuestos = replacementParts.objects.filter(
+                building=building_user
+            ).select_related("tower", "building")
+
+            listado_completo = False
+
+        else:
+            repuestos = replacementParts.objects.all().select_related("tower", "building")
+
+    else:
+        # Cliente: solo sus repuestos
+        building_user = user
+        repuestos = replacementParts.objects.filter(
+            building=user
+        ).select_related("tower", "building")
+
+        listado_completo = False
+
+    # ----------------------------------
     # FORMULARIO DE FILTROS
-    # ------------------------------
+    # ----------------------------------
     filter_form = ReplacementPartsFilterForm(request.GET or None)
 
-    # Aplicar filtros
     if filter_form.is_valid():
         fecha_inicio = filter_form.cleaned_data.get("fecha_inicio")
         fecha_fin = filter_form.cleaned_data.get("fecha_fin")
@@ -52,104 +69,71 @@ def listParts(request):
         if status_Install:
             repuestos = repuestos.filter(status_Install=status_Install)
 
-    # ------------------------------
+    # ----------------------------------
     # PAGINACIÓN
-    # ------------------------------
+    # ----------------------------------
     paginator = Paginator(repuestos, 10)
     page_number = request.GET.get("page")
     repuestos_paginados = paginator.get_page(page_number)
 
-    # ------------------------------
-    # CREAR NUEVO REPUESTO
-    # ------------------------------
-    if request.method == "POST":
+    # ----------------------------------
+    # CREACIÓN DE REPUESTOS (SOLO ADMIN)
+    # ----------------------------------
+    if es_admin and request.method == "POST":
         form = replacementPartsForm(request.POST)
 
         if form.is_valid():
-            nuevo_repuesto = form.save(commit=False)
+            nuevo = form.save(commit=False)
 
-            # Asociar edificio
+            # asociar edificio
             if building_user:
-                nuevo_repuesto.building = building_user
+                nuevo.building = building_user
 
-            # Estado inicial
-            if not nuevo_repuesto.approved_status:
-                nuevo_repuesto.approved_status = "pendiente"
+            # estado inicial
+            if not nuevo.approved_status:
+                nuevo.approved_status = "pendiente"
 
-            # Calcular total
-            nuevo_repuesto.precio_total = (
-                nuevo_repuesto.cantidad * nuevo_repuesto.precio_unitario
-            )
+            # total
+            nuevo.precio_total = nuevo.cantidad * nuevo.precio_unitario
 
-            # Asignar status_Payment según total
-            if nuevo_repuesto.precio_total >= 1000000:
-                nuevo_repuesto.status_Payment = "pendiente_anticipo"
+            # status payment
+            if nuevo.precio_total >= 1_000_000:
+                nuevo.status_Payment = "pendiente_anticipo"
             else:
-                nuevo_repuesto.status_Payment = "no_aplica"
+                nuevo.status_Payment = "no_aplica"
 
-            nuevo_repuesto.save()
+            nuevo.save()
 
             messages.success(
-                request,
-                f"✅ Repuesto '{nuevo_repuesto.nameItem}' creado correctamente."
+                request, f"Repuesto '{nuevo.nameItem}' creado correctamente."
             )
 
-            return redirect(f"{reverse('listParts')}?id={building_user.id}")
+            return redirect(f"{reverse('listPartsUnified')}?id={building_user.id}")
 
         else:
             print(form.errors)
-            messages.error(
-                request,
-                "❌ Hubo un error al crear el repuesto. Revisa los campos."
-            )
+            messages.error(request, "Error al crear el repuesto.")
 
     else:
-        form = replacementPartsForm()
+        form = replacementPartsForm() if es_admin else None
 
-    # Limitar torres según edificio seleccionado
-    if building_obj:
+    # limitar torres si se seleccionó edificio
+    if building_obj and form:
         form.fields["tower"].queryset = towers.objects.filter(building=building_obj)
 
-    # ------------------------------
+    # ----------------------------------
     # RENDER
-    # ------------------------------
+    # ----------------------------------
     return render(request, "listParts.html", {
         "repuestos": repuestos_paginados,
         "building": building_user,
-        "form": form,
-        "filters": filter_form,  # Solo los 3 filtros
         "listado_completo": listado_completo,
+        "filters": filter_form,
         "paginator": paginator,
-    })
-
-
-
-
-# Vista para listar repuestos del cliente
-@login_required
-def listPartsClient(request):
-    user = request.user
-    repuestos = (
-        replacementParts.objects
-        .filter(building=user)
-        .select_related("tower", "building")
-    )
-
-    from django.core.paginator import Paginator
-
-    paginator = Paginator(repuestos, 10)  # 10 por página
-    page_number = request.GET.get("page")  
-    repuestos_paginados = paginator.get_page(page_number)
-
-    es_cliente = user.groups.filter(name="Cliente").exists()
-
-    return render(request, "listParts.html", {
-        "repuestos": repuestos_paginados,   # ← enviar paginados
-        "building": user,
-        "listado_completo": False,
+        "form": form,
         "es_cliente": es_cliente,
-        "paginator": paginator,  # opcional para más control
     })
+
 
 
 # Editar repuesto

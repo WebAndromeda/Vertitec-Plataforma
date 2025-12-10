@@ -6,8 +6,6 @@ class schedule(models.Model):
     RECURRENCE_CHOICES = [
         ('single', 'Individual'),
         ('monthly', 'Mensual'),
-        # ('weekly', 'Semanal'),   # <-- En caso de necesitar mas en el futuro
-        # ('yearly', 'Anual'),
     ]
 
     PROGRAMMING_OPTIONS = [
@@ -15,6 +13,11 @@ class schedule(models.Model):
         ('not_programmed', 'No programado')
     ]
 
+    STATUS_CHOICES = [
+        ('to_be_done', 'Por realizar'),
+        ('in_production', 'En producción'),
+        ('complete', 'Realizado'),
+    ]
     # Usuario que solicita el agendamiento (cliente)
     client = models.ForeignKey(
         User,
@@ -27,7 +30,13 @@ class schedule(models.Model):
 
     date = models.DateField()
     hour = models.TimeField()
-    status = models.BooleanField(default=False)
+
+    # Nuevo status con opciones
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='por_realizar'
+    )
 
     # Recurrencia
     recurrence = models.CharField(
@@ -56,4 +65,4 @@ class schedule(models.Model):
 
     @property
     def address(self):
-        return self.client.buildings.address  # Gracias al OneToOne
+        return self.client.buildings.address

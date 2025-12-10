@@ -9,8 +9,10 @@
             <h1 class="titleText">Agendamientos</h1>
         </div>
         <div class="col-8">
+            <!-- Filtros para adminitrador -->
             {% if user.groups.all.0.name == "Administrador"%}
-                <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
+                <!-- Crear agendamientos -->
+                <a href="{% url 'createSchedule' %}"> 
                     <button class="botonCrear">
                         <i class="fa-solid fa-plus"></i>
                         Nuevo agendamiento
@@ -24,12 +26,14 @@
                     {{ form.technician }}
                     {{ form.building }}
                     <ul id="suggestions" class="suggestions-list"></ul>
-                <button type="submit" class="botonEditar">Filtrar</button>
-            </form>
+                    <button type="submit" class="botonEditar">Filtrar</button>
+                </form>
             {% endif %}
 
+            <!-- Filtros para los tecnicos -->
             {% if user.groups.all.0.name == "Técnico" %}
-                <a href="{% url 'createSchedule' %}"> <!-- Crear agendamientos -->
+                <!-- Crear agendamientos -->
+                <a href="{% url 'createSchedule' %}"> 
                     <button class="botonCrear">
                         <i class="fa-solid fa-plus"></i>
                         Nuevo agendamiento
@@ -46,115 +50,128 @@
             </form>
             {% endif %}
 
+            <!-- Filtros para clientes -->
             {% if user.groups.all.0.name == "Cliente" %}
                 <form method="get">
                     {{ form.start_date }}
                     {{ form.end_date }}
                     {{ form.status }}
                     <ul id="suggestions" class="suggestions-list"></ul>
-                <button type="submit" class="botonEditar">Filtrar</button>
-            </form>
+                    <button type="submit" class="botonEditar">Filtrar</button>
+                </form>
             {% endif %}
-
-
-            <script>    
-                const input = document.querySelector('input[name="building"]');
-                const suggestionsList = document.getElementById('suggestions');
-            
-                input.addEventListener('input', () => {
-                    const query = input.value;
-                
-                    if (query.length < 2) {
-                        suggestionsList.style.display = 'none';
-                        suggestionsList.innerHTML = '';
-                        return;
-                    }
-                
-                    fetch(`/building_suggestionsB/?q=${encodeURIComponent(query)}`, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        suggestionsList.innerHTML = '';
-                    
-                        if (data.length > 0) {
-                            data.forEach(username => {
-                                const li = document.createElement('li');
-                                li.textContent = username;
-                                li.addEventListener('click', () => {
-                                    input.value = username;
-                                    suggestionsList.innerHTML = '';
-                                    suggestionsList.style.display = 'none';
-                                });
-                                suggestionsList.appendChild(li);
-                            });
-                            suggestionsList.style.display = 'block';
-                        } else {
-                            suggestionsList.style.display = 'none';
-                        }
-                    });
-                });
-            
-                // Cierra la lista si se hace clic fuera
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('form')) {
-                        suggestionsList.style.display = 'none';
-                    }
-                });
-            </script>
-
-            <style>
-                /* Contenedor del formulario */
-                form {
-                    position: relative;
-                }
-            
-                /* Lista de sugerencias */
-                .suggestions-list {
-                    position: absolute;
-                    top: 100%;
-                    left: 0;
-                    right: 0;
-                    background: #111c28;
-                    border: 1px solid white;
-                    border-top: none;
-                    list-style: none;
-                    margin: 0;
-                    padding: 0;
-                    max-height: 200px;
-                    overflow-y: auto;
-                    z-index: 1000;
-                    display: none; /* Oculto por defecto */
-                }
-            
-                /* Cada opción */
-                .suggestions-list li {
-                    padding: 8px;
-                    cursor: pointer;
-                    font-size: 14px;
-                    color: white;
-                }
-            
-                /* Hover en opciones */
-                .suggestions-list li:hover {
-                    background-color: #344455;
-                }
-            </style>
         </div>
     </div>
     
+    <script>    
+        const input = document.querySelector('input[name="building"]');
+        const suggestionsList = document.getElementById('suggestions');
+    
+        input.addEventListener('input', () => {
+            const query = input.value;
+        
+            if (query.length < 2) {
+                suggestionsList.style.display = 'none';
+                suggestionsList.innerHTML = '';
+                return;
+            }
+        
+            fetch(`/building_suggestionsB/?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = '';
+            
+                if (data.length > 0) {
+                    data.forEach(username => {
+                        const li = document.createElement('li');
+                        li.textContent = username;
+                        li.addEventListener('click', () => {
+                            input.value = username;
+                            suggestionsList.innerHTML = '';
+                            suggestionsList.style.display = 'none';
+                        });
+                        suggestionsList.appendChild(li);
+                    });
+                    suggestionsList.style.display = 'block';
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+        });
+    
+        // Cierra la lista si se hace clic fuera
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('form')) {
+                suggestionsList.style.display = 'none';
+            }
+        });
+    </script>
+
+    <style>
+        /* Contenedor del formulario */
+        form {
+            position: relative;
+        }
+    
+        /* Lista de sugerencias */
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #111c28;
+            border: 1px solid white;
+            border-top: none;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none; /* Oculto por defecto */
+        }
+    
+        /* Cada opción */
+        .suggestions-list li {
+            padding: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+        }
+    
+        /* Hover en opciones */
+        .suggestions-list li:hover {
+            background-color: #344455;
+        }
+    </style>    
+    
+
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == "success" %}
+                <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
+                    {{ message }}
+                </div>
+
+            {% elif message.tags == "error" %}
+                <div class="alert alert-danger divNotificaciones" style="margin-bottom: 10px;">
+                    {{ message }}
+                </div>
+
+            {% else %}
+                <div class="alert alert-info divNotificaciones" style="margin-bottom: 10px;">
+                    {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}    
 
     <!-- Datos administradores -->
     {% if user.groups.all.0.name == "Administrador" %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
-                {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
         <!-- Tabla datos -->
         <div class="tableData">
             <!-- Titulos de la tabla -->
@@ -190,7 +207,7 @@
         
             <!-- Datos -->
             {% for individualSchedule in schedule %}
-                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
+                <div class="row {% if individualSchedule.status == 'to_be_done' %} containerInfoTable2 {% elif individualSchedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
                     <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.get_programmed_display }}</p>
                     </div>
@@ -201,10 +218,10 @@
                         <p class="infoTable">{{ individualSchedule.hour }}</p>
                     </div>
                     <div class="col-1 divData">
-                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                        <p class="infoTable">{{ individualSchedule.get_status_display }}</p>
                     </div>
                     <div class="col-2 divData">
-                        <p class="infoTable">{{ individualSchedule.technician }}</p>
+                        <p class="infoTable">{{ individualSchedule.technician.get_full_name }}</p>
                     </div>
                     <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
@@ -217,12 +234,14 @@
                     </div>
                         
                     <div class="col-2">
-                        <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                            <button class="botonEditar">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                                Editar
-                            </button>
-                        </a>
+                        {% if individualSchedule.status == 'to_be_done' or individualSchedule.status == 'in_production'  %}
+                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                                <button class="botonEditar">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    Editar
+                                </button>
+                            </a>
+                        {% endif %}
                         
                         <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
                             <button class="botonEliminar">
@@ -266,14 +285,6 @@
 
     <!-- Datos tecnicos -->
     {% if user.groups.all.0.name == "Técnico" %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success divNotificaciones" style="margin-bottom: 10px;">
-                {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <!-- Tabla datos -->
         <div class="tableData">
             <!-- Titulos de la tabla -->
@@ -306,7 +317,7 @@
         
             <!-- Datos -->
             {% for individualSchedule in schedule %}
-                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
+                <div class="row {% if individualSchedule.status == 'to_be_done' %} containerInfoTable2 {% elif individualSchedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
                     <div class="col-1 divData">
                         <p class="infoTable">{{ individualSchedule.get_programmed_display }}</p>
                     </div>
@@ -317,7 +328,7 @@
                         <p class="infoTable">{{ individualSchedule.hour }}</p>
                     </div>
                     <div class="col-1 divData">
-                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                        <p class="infoTable">{{ individualSchedule.get_status_display }}</p>
                     </div>
                     <div class="col-2 divData">
                         <p class="infoTable">{{ individualSchedule.client.first_name }}</p>
@@ -330,41 +341,61 @@
                     </div>
                         
                     <div class="col-2">
-                        {% if individualSchedule.programmed == "not_programmed" %}
-                            <!-- Aquí pones lo que quieras mostrar -->
-                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
+                        {% if individualSchedule.status == "complete" %}  
+                            <a href="#"> <!-- Ver PDF -->
                                 <button class="botonCrear">
                                     <i class="fa-solid fa-plus"></i>
-
-                                    <!-- Palabra empezar -->
+                                    Ver PDF
                                 </button>
                             </a>
 
-                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                                <button class="botonEditar">
-                                    <i class="fa-regular fa-pen-to-square"></i>
-                                    <!-- Palabra editar -->
+                        {% elif individualSchedule.status == "in_production"%}
+                            <!-- Empezar reporte agendado -->
+                            <a href="{% url 'createReport' individualSchedule.id %}">
+                                <button class="botonCrear">
+                                    <i class="fa-solid fa-plus"></i>
+                                    Continuar
                                 </button>
-                            </a>
-                            
-                            <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> <!-- Eliminar agendamiento -->
-                                <button class="botonEliminar">
-                                    <i class="fa-solid fa-trash"></i>
-                                    
-                                    <!-- Palabra eliminar -->
-                                </button>
-                            </a>          
+                            </a>                            
+
                         {% else %}
-                            <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> <!-- Editar agendamiento -->
-                                <button class="botonCrear">
-                                    <i class="fa-solid fa-plus"></i>
-                                    Empezar
-                                    <!-- Palabra empezar -->
-                                </button>
-                            </a>
-                        {% endif %}                                       
+                            {% if individualSchedule.programmed == "not_programmed" %}
+                                <!-- Empezar reporte no agendado -->
+                                <a href="{% url 'createReport' individualSchedule.id %}" onclick="return confirm('Vas a empezar este reporte a las {{ server_time }} ¿Continuar? ');"> 
+                                    <button class="botonCrear">
+                                        <i class="fa-solid fa-plus"></i>
+
+                                    </button>
+                                </a>
+
+                                <!-- Editar agendamiento -->
+                                <a href="{% url 'editSchedule' %}?id={{ individualSchedule.id }}"> 
+                                    <button class="botonEditar">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </button>
+                                </a>
+                                
+                                <!-- Eliminar agendamiento -->
+                                <a href="{% url 'deleteSchedule' %}?id={{ individualSchedule.id }}" onclick="return confirm('¿Estás seguro de eliminar este agendamiento?');"> 
+                                    <button class="botonEliminar">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </a>  
+
+                            {% else %}
+                                <!-- Empezar reporte agendado -->
+                                <a href="{% url 'createReport' individualSchedule.id %}" 
+                                onclick="return confirm('Vas a empezar este reporte a las {{ server_time }} ¿Continuar? ');">
+                                    <button class="botonCrear">
+                                        <i class="fa-solid fa-plus"></i>
+                                        Empezar
+                                    </button>
+                                </a>
+                            {% endif %} 
+                        {% endif %}             
                     </div>
                 </div>
+
             {% empty %}
                 <div class="row containerInfoTable">
                     <div class="col-12 text-center">
@@ -396,18 +427,17 @@
 
     <!-- Datos clientes -->
     {% if user.groups.all.0.name == "Cliente" %}
-        <h1 class="infoTable mt-3 mb-3"> <strong> Nota: Este cronograma puede tener modificaciones según la disponibilidad de la operación. </strong> </h1>
         <!-- Tabla datos -->
         <div class="tableData">
             <!-- Titulos de la tabla -->
             <div class="row containerTitlesTable">
-                <div class="col-3">
+                <div class="col-2">
                     <p class="titlesTable">Fecha</p>
                 </div>
                 <div class="col-2">
                     <p class="titlesTable">Hora</p>
                 </div>
-                <div class="col-1">
+                <div class="col-2">
                     <p class="titlesTable">Estado</p>
                 </div>
                 <div class="col-3">
@@ -419,31 +449,29 @@
             </div>
         
             <!-- Datos -->
-            {% for individualSchedule in schedule %}    
-                <div class="row {% if individualSchedule.status == False %}containerInfoTable2{% else %}containerInfoTable3{% endif %}">
-                    <div class="col-3 divData">
+            {% for individualSchedule in schedule %}
+                <div class="row {% if individualSchedule.status == 'to_be_done' %} containerInfoTable2 {% elif individualSchedule.status == 'in_production' %} containerInfoTable {% else %} containerInfoTable3 {% endif %}">
+                    <div class="col-2 divData">
                         <p class="infoTable">{{ individualSchedule.date }}</p>
                     </div>
                     <div class="col-2 divData">
                         <p class="infoTable">{{ individualSchedule.hour }}</p>
                     </div>
-                    <div class="col-1 divData">
-                        <p class="infoTable">{% if individualSchedule.status == False %}Por realizar{% else %}Realizado{% endif %}</p>
+                    <div class="col-2 divData">
+                        <p class="infoTable">{{ individualSchedule.get_status_display }}</p>
                     </div>
                     <div class="col-3 divData">
-                        <p class="infoTable">{{ individualSchedule.technician }}</p>
+                        <p class="infoTable">{{ individualSchedule.technician.get_full_name }}</p>
                     </div>
                     <div class="col-3 divData">
                         <p class="infoTable">{{ individualSchedule.tower.name }}</p>
                     </div>
-                        
-                    
                 </div>
-            {% empty %}
+            {% empty %}            
                 <div class="row containerInfoTable">
                     <div class="col-12 text-center">
                         <p class="infoTable" style="font-style: italic; color: gray;">
-                            ⚙️ No hay agendamientos registrados para tu edificio.
+                            ⚙️ No hay agendamientos registrados.
                         </p>
                     </div>
                 </div>  
@@ -451,21 +479,23 @@
             <br>
             <div>
                 {% if schedule.has_previous %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">Anterior</a>
+                    <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.previous_page_number }}" class="botonEditar">
+                        Anterior
+                    </a>
                 {% endif %}
+
 
                 <span class="botonEditar">{{ schedule.number }}</span>
 
                 {% if schedule.has_next %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">Siguiente</a>
+                    <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ schedule.next_page_number }}" class="botonEditar">
+                        Siguiente
+                    </a>
                 {% endif %}
             </div>
             <br> <br>
-            
-        </div>
+        </div>        
     {% endif %}
-
-
     <br> <br>
 </center>
 {% endblock %}

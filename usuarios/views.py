@@ -7,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from .forms import loginForm, UnifiedUserForm, UserFilterForm
 from django.core.paginator import Paginator
 from django.contrib import messages
+from schedule.models import schedule
 
 
 # Autocompletado de nombre real
@@ -31,8 +32,25 @@ def user_suggestions(request):
 
 
 # Index
+
 def index(request):
-    return render(request, 'index.html')
+
+    # Total de agendamientos
+    total_agendamientos = schedule.objects.count()
+
+    # Reportes en producción
+    reportes_en_produccion = schedule.objects.filter(status="in_production").count()
+
+    # Reportes completados
+    reportes_completados = schedule.objects.filter(status="complete").count()
+
+    return render(request, 'index.html', {
+        "total_agendamientos": total_agendamientos,
+        "reportes_en_produccion": reportes_en_produccion,
+        "reportes_completados": reportes_completados,
+    })
+
+
 
 
 # Vistas para CRUD de usuarios
