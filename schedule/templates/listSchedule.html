@@ -7,6 +7,9 @@
     <div class="containerFilter row mb-3 mt-5">
         <div class="col-4">
             <h1 class="titleText">Agendamientos</h1>
+            {% if user.groups.all.0.name == "Cliente" %}
+                <p class="infoTable">Este cronograma puede tener modificaciones según la disponibilidad de la operación.</p>
+            {% endif %}
         </div>
         <div class="col-8">
             <!-- Filtros para adminitrador -->
@@ -342,12 +345,7 @@
                         
                     <div class="col-2">
                         {% if individualSchedule.status == "complete" %}  
-                            <a href="#"> <!-- Ver PDF -->
-                                <button class="botonCrear">
-                                    <i class="fa-solid fa-plus"></i>
-                                    Ver PDF
-                                </button>
-                            </a>
+                            <p class="infoTable">Finalizado</p>
 
                         {% elif individualSchedule.status == "in_production"%}
                             <!-- Empezar reporte agendado -->

@@ -81,9 +81,9 @@
                     {{ forms.client.errors }}
                     </div>
 
-                    <div class="col-1 divData">
-                    {{ forms.tower }}
-                    {{ forms.tower.errors }}
+                    <div class="col-1 divData" id="towerContainer" style="visibility: hidden;">
+                        {{ forms.tower }}
+                        {{ forms.tower.errors }}
                     </div>
 
                     <div class="col-3 divData">
@@ -123,84 +123,83 @@
 
 
     <!-- Formulario para técnicos -->
-{% if user.groups.all.0.name == "Técnico" %}
-    <div class="tableData">
+    {% if user.groups.all.0.name == "Técnico" %}
+        <div class="tableData">
 
-        <!-- Mostrar messages de Django (éxitos, advertencias, errores) -->
-        {% if messages %}
-        <div style="margin-bottom: 15px;">
-            {% for message in messages %}
-            <div class="alert 
-                {% if message.tags == 'error' %}alert-danger
-                {% elif message.tags == 'warning' %}alert-warning
-                {% elif message.tags == 'success' %}alert-success
-                {% else %}alert-info{% endif %}"
-                style="padding: 10px; border-radius: 5px;">
-                {{ message }}
+            <!-- Mostrar messages de Django (éxitos, advertencias, errores) -->
+            {% if messages %}
+            <div style="margin-bottom: 15px;">
+                {% for message in messages %}
+                <div class="alert 
+                    {% if message.tags == 'error' %}alert-danger
+                    {% elif message.tags == 'warning' %}alert-warning
+                    {% elif message.tags == 'success' %}alert-success
+                    {% else %}alert-info{% endif %}"
+                    style="padding: 10px; border-radius: 5px;">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Mostrar errores no ligados a campo -->
-        {% if forms.non_field_errors %}
-        <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 15px;">
-            {% for err in forms.non_field_errors %}
-                <p>{{ err }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Titulos de la tabla -->
-        <div class="row containerTitlesTable">
-            <div class="col-3"><p class="titlesTable">Edificio</p></div>
-            <div class="col-3"><p class="titlesTable">Torre</p></div>
-            <div class="col-2"><p class="titlesTable">Fecha</p></div>
-            <div class="col-2"><p class="titlesTable">Hora</p></div>
-            <div class="col-2"><p class="titlesTable">Enviar</p></div>
-        </div>
-
-        <!-- Formulario -->
-        <form action="" method="post">
-            {% csrf_token %}
-            <div class="row containerInfoTable">
-
-                <div class="col-3 divData">
-                    {{ forms.client }}
-                    <input type="hidden" id="buildingId" name="building_id">
-                    {{ forms.client.errors }}
-                </div>
-
-                <div class="col-3 divData">
-                    {{ forms.tower }}
-                    {{ forms.tower.errors }}
-                </div>
-
-                <div class="col-2 divData">
-                    {{ forms.date }}
-                    {{ forms.date.errors }}
-                </div>
-
-                <div class="col-2 divData">
-                    {{ forms.hour }}
-                    {{ forms.hour.errors }}
-                </div>
-
-                <div class="col-2 divData">
-                    <button class="buttonSendForm" type="submit">
-                        {% if update %}Editar{% else %}Crear{% endif %} agendamiento
-                    </button>
-                </div>
-            </div>
-
-            <!-- Flag oculto para permitir un segundo intento tras advertencia -->
-            {% if confirm_warning %}
-                <input type="hidden" name="confirm_warning" value="1">
             {% endif %}
-        </form>
-    </div>
-{% endif %}
 
+            <!-- Mostrar errores no ligados a campo -->
+            {% if forms.non_field_errors %}
+            <div class="alert alert-danger" style="padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                {% for err in forms.non_field_errors %}
+                    <p>{{ err }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Titulos de la tabla -->
+            <div class="row containerTitlesTable">
+                <div class="col-3"><p class="titlesTable">Edificio</p></div>
+                <div class="col-3"><p class="titlesTable">Torre</p></div>
+                <div class="col-2"><p class="titlesTable">Fecha</p></div>
+                <div class="col-2"><p class="titlesTable">Hora</p></div>
+                <div class="col-2"><p class="titlesTable">Enviar</p></div>
+            </div>
+
+            <!-- Formulario -->
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="row containerInfoTable">
+
+                    <div class="col-3 divData">
+                        {{ forms.client }}
+                        <input type="hidden" id="buildingId" name="building_id">
+                        {{ forms.client.errors }}
+                    </div>
+
+                    <div class="col-3 divData" id="towerContainer" style="visibility: hidden;">
+                        {{ forms.tower }}
+                        {{ forms.tower.errors }}
+                    </div>
+
+                    <div class="col-2 divData">
+                        {{ forms.date }}
+                        {{ forms.date.errors }}
+                    </div>
+
+                    <div class="col-2 divData">
+                        {{ forms.hour }}
+                        {{ forms.hour.errors }}
+                    </div>
+
+                    <div class="col-2 divData">
+                        <button class="buttonSendForm" type="submit">
+                            {% if update %}Editar{% else %}Crear{% endif %} agendamiento
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Flag oculto para permitir un segundo intento tras advertencia -->
+                {% if confirm_warning %}
+                    <input type="hidden" name="confirm_warning" value="1">
+                {% endif %}
+            </form>
+        </div>
+    {% endif %}
 </center>
 
 <style>
@@ -244,8 +243,18 @@
 <script>
     // Script de autocompletado del campo cliente / edificio
     document.addEventListener("DOMContentLoaded", function () {
+
+        // Input donde se escribe el nombre del edificio (cliente)
         const input = document.getElementById("buildingInput");
+
+        // Select de torres
         const towerSelect = document.getElementById("id_tower");
+
+        // Contenedor del select de torres (para mostrar / ocultar SIN romper layout)
+        const towerContainer = document.getElementById("towerContainer");
+
+        // Guardamos el building seleccionado realmente (solo cuando viene de sugerencia)
+        let selectedBuildingId = null;
 
         // Crear la lista de sugerencias
         const suggestionBox = document.createElement("ul");
@@ -254,67 +263,120 @@
         // Insertamos después del input
         input.parentNode.appendChild(suggestionBox);
 
+        // 🔒 Al cargar la página:
+        // El select NO debe verse, pero debe conservar su espacio
+        towerContainer.style.visibility = "hidden";
+
+        /**
+         * Limpia y oculta el campo de torres
+         * Se usa cuando:
+         * - El usuario borra texto
+         * - Cambia manualmente el edificio
+         * - El edificio no es válido
+         */
+        function resetTowers() {
+            towerSelect.innerHTML = "";                 // Vaciar opciones
+            towerContainer.style.visibility = "hidden"; // Ocultar SIN afectar layout
+            selectedBuildingId = null;                  // Invalidar edificio
+        }
+
+        // Evento cuando el usuario escribe en el input de edificio
         input.addEventListener("input", function () {
+
             const query = input.value.trim();
+
+            // 🚨 IMPORTANTE:
+            // Si el usuario escribe o borra manualmente,
+            // asumimos que ya NO hay un edificio válido seleccionado
+            resetTowers();
+
+            // Si hay menos de 2 caracteres, no buscamos
             if (query.length < 2) {
                 suggestionBox.style.display = "none";
                 return;
             }
 
+            // Petición AJAX para buscar edificios
             fetch(`/building-suggestions/?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
+
+                    // Limpiar sugerencias anteriores
                     suggestionBox.innerHTML = "";
-                    if (data.length > 0) {
-                        data.forEach(item => {
-                            const li = document.createElement("li");
-                            li.textContent = item.first_name;
 
-                            // Guardamos también el id del edificio
-                            li.dataset.buildingId = item.id;
-
-                            li.addEventListener("mousedown", function () {
-                                input.value = item.first_name;
-                                suggestionBox.style.display = "none";
-
-                                // 🔽 Actualizar torres según el edificio seleccionado
-                                const buildingId = li.dataset.buildingId;
-                                fetch(`/tower-suggestions/?building_id=${buildingId}`)
-                                    .then(response => response.json())
-                                    .then(towers => {
-                                        towerSelect.innerHTML = ""; // limpiar torres previas
-
-                                        if (towers.length > 0) {
-                                            const defaultOption = document.createElement("option");
-                                            defaultOption.value = "";
-                                            defaultOption.textContent = "Selecciona una torre";
-                                            towerSelect.appendChild(defaultOption);
-
-                                            towers.forEach(tower => {
-                                                const option = document.createElement("option");
-                                                option.value = tower.id;
-                                                option.textContent = tower.name;
-                                                towerSelect.appendChild(option);
-                                            });
-                                        } else {
-                                            const option = document.createElement("option");
-                                            option.value = "";
-                                            option.textContent = "Sin torres disponibles";
-                                            towerSelect.appendChild(option);
-                                        }
-                                    });
-                            });
-
-                            suggestionBox.appendChild(li);
-                        });
-                        suggestionBox.style.display = "block";
-                    } else {
+                    // Si no hay resultados, ocultamos la lista
+                    if (data.length === 0) {
                         suggestionBox.style.display = "none";
+                        return;
                     }
+
+                    // Recorremos las sugerencias recibidas
+                    data.forEach(item => {
+
+                        const li = document.createElement("li");
+                        li.textContent = item.first_name;
+
+                        // Guardamos el ID real del edificio
+                        li.dataset.buildingId = item.id;
+
+                        // Evento al seleccionar una sugerencia
+                        // Usamos mousedown para que no se pierda el foco del input
+                        li.addEventListener("mousedown", function () {
+
+                            // Colocamos el nombre en el input
+                            input.value = item.first_name;
+
+                            // Guardamos el edificio válido seleccionado
+                            selectedBuildingId = item.id;
+
+                            // Ocultamos las sugerencias
+                            suggestionBox.style.display = "none";
+
+                            // 🔽 Cargar torres del edificio seleccionado
+                            fetch(`/tower-suggestions/?building_id=${selectedBuildingId}`)
+                                .then(response => response.json())
+                                .then(towers => {
+
+                                    // Limpiamos torres anteriores
+                                    towerSelect.innerHTML = "";
+
+                                    if (towers.length > 0) {
+
+                                        // Opción por defecto
+                                        const defaultOption = document.createElement("option");
+                                        defaultOption.value = "";
+                                        defaultOption.textContent = "Selecciona una torre";
+                                        towerSelect.appendChild(defaultOption);
+
+                                        // Crear opciones dinámicamente
+                                        towers.forEach(tower => {
+                                            const option = document.createElement("option");
+                                            option.value = tower.id;
+                                            option.textContent = tower.name;
+                                            towerSelect.appendChild(option);
+                                        });
+
+                                        // ✅ MOSTRAR torres:
+                                        // Se hacen visibles, pero el espacio ya existía
+                                        towerContainer.style.visibility = "visible";
+
+                                    } else {
+                                        // Si el edificio no tiene torres, ocultamos
+                                        resetTowers();
+                                    }
+                                });
+                        });
+
+                        // Añadimos la sugerencia a la lista
+                        suggestionBox.appendChild(li);
+                    });
+
+                    // Mostrar la lista de sugerencias
+                    suggestionBox.style.display = "block";
                 });
         });
 
-        // Ocultar sugerencias si se hace clic afuera
+        // Ocultar sugerencias si se hace clic fuera del input o la lista
         document.addEventListener("click", function (e) {
             if (e.target !== input && !suggestionBox.contains(e.target)) {
                 suggestionBox.style.display = "none";

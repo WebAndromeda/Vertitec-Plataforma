@@ -1,54 +1,190 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 22px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .label {
-            font-weight: bold;
-        }
-
-    </style>
+    <title>Reporte de servicio</title>
 </head>
+
 <body>
 
-    <h1>Reporte del Agendamiento #{{ schedule.id }}</h1>
+    <!-- ===================== -->
+    <!-- ENCABEZADO -->
+    <!-- ===================== -->
+    <header class="header">
+        <h1>Reporte de servicios y mantenimiento</h1>
 
-    <div class="section">
-        <p><span class="label">Edificio:</span> {{ building.user.first_name }}</p>
-        <p><span class="label">Técnico:</span> {{ technician.first_name }} {{ technician.last_name }}</p>
-        <p><span class="label">Fecha:</span> {{ schedule.date }}</p>
-    </div>
+        <div class="header-info">
+            <address class="from">
+                Cra 62 No. 103-44 Oficina 201<br>
+                Edificio Torre del Reloj – Bogotá, Colombia<br>
+                Tel: 526 86 98 · Fax: 526 39 38<br>
+                www.vertitec.co
+            </address>
 
-    <div class="section">
-        <p><span class="label">Hora de llegada:</span> {{ report.check_in_time }}</p>
-        <p><span class="label">Hora de salida:</span> {{ report.check_out_time }}</p>
-        <p><span class="label">Tiempo total:</span> {{ report.time_spent }}</p>
-    </div>
+            <address class="to">
+                <strong>Edificio:</strong> {{ building.user.first_name }}<br>
+                <strong>Técnico:</strong> {{ technician.first_name }} {{ technician.last_name }}<br>
+                <strong>N° Servicio:</strong> {{ schedule.id }}
+            </address>
+        </div>
+    </header>
 
-    <div class="section">
-        <p><span class="label">Observaciones generales:</span></p>
-        <p>{{ report.general_observations }}</p>
-    </div>
+    <!-- ===================== -->
+    <!-- TABLA DE HORARIOS -->
+    <!-- ===================== -->
+    <section class="section">
+        <table class="table-main">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Hora de entrada</th>
+                    <th>Hora de salida</th>
+                    <th>Tiempo empleado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ schedule.date }}</td>
+                    <td>{{ report.check_in_time }}</td>
+                    <td>{{ report.check_out_time }}</td>
+                    <td class="highlight">{{ report.time_spent }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
 
-    <div class="section">
-        <p><span class="label">Recomendaciones especiales:</span></p>
-        <p>{{ report.special_recommendations }}</p>
-    </div>
+    <!-- ===================== -->
+    <!-- OBSERVACIONES -->
+    <!-- ===================== -->
+    <section class="section">
+        <h2>Observaciones generales</h2>
+        <div class="text-box">
+            {{ report.general_observations|default:"Sin observaciones." }}
+        </div>
+    </section>
+
+    <!-- ===================== -->
+    <!-- RECOMENDACIONES -->
+    <!-- ===================== -->
+    <section class="section">
+        <h2>Recomendaciones especiales</h2>
+        <div class="text-box">
+            {{ report.special_recommendations|default:"Sin recomendaciones." }}
+        </div>
+    </section>
 
 </body>
 </html>
+
+<style>
+    @font-face {
+    font-family: 'AvenirBlack';
+    src: url("{% static 'css/AvenirLTStd-Black.otf' %}") format('opentype');
+}
+
+@font-face {
+    font-family: 'AvenirBook';
+    src: url("{% static 'css/AvenirLTStd-Book.otf' %}") format('opentype');
+}
+
+html {
+    font-family: AvenirBook, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #14213d;
+}
+
+body {
+    margin: 2.5cm;
+}
+
+/* ===================== */
+/* HEADER */
+/* ===================== */
+.header {
+    margin-bottom: 2cm;
+}
+
+h1 {
+    color: #1ee494;
+    font-size: 25pt;
+    line-height: 1.2;
+    margin-bottom: 1cm;
+}
+
+.header-info {
+    display: flex;
+    justify-content: space-between;
+}
+
+address {
+    font-style: normal;
+    font-size: 10pt;
+    line-height: 1.5;
+}
+
+.from {
+    max-width: 50%;
+    color: #555;
+}
+
+.to {
+    text-align: right;
+}
+
+/* ===================== */
+/* SECCIONES */
+/* ===================== */
+.section {
+    margin-bottom: 1.5cm;
+}
+
+h2 {
+    font-size: 13pt;
+    color: #1ee494;
+    margin-bottom: 0.4cm;
+}
+
+/* ===================== */
+/* TABLA PRINCIPAL */
+/* ===================== */
+.table-main {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-main th {
+    border-bottom: 1px solid #ccc;
+    font-size: 10pt;
+    text-transform: uppercase;
+    padding-bottom: 6px;
+    color: #555;
+}
+
+.table-main td {
+    padding-top: 8mm;
+    text-align: center;
+}
+
+.table-main td:first-child {
+    text-align: left;
+}
+
+.highlight {
+    color: #1ee494;
+    font-weight: bold;
+}
+
+/* ===================== */
+/* TEXTOS LARGOS */
+/* ===================== */
+.text-box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    min-height: 2.5cm;
+    font-size: 10.5pt;
+}
+
+</style>

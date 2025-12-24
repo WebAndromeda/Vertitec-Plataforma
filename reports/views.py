@@ -13,7 +13,6 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.http import HttpResponse
 from io import BytesIO
-from weasyprint import HTML
 import tempfile
 from django.http import FileResponse
 
@@ -64,6 +63,7 @@ def createReport(request, schedule_id):
             "form": form,
         })
 
+    
     # ---------- MÉTODO POST ----------
     if request.method == "POST":
         
@@ -89,55 +89,92 @@ def createReport(request, schedule_id):
             sched.status = "complete"
             sched.save()
 
-            hora_salida = updated_report.check_out_time.strftime("%H:%M")
-
-            # -------------------------------------------------------
-            # 🧾 Generar PDF TEMPORAL desde plantilla HTML
-            # -------------------------------------------------------
-            html_content = render_to_string("report_pdf_template.html", {
-                "schedule": sched,
-                "report": updated_report,
-                "building": building,
-            })
-
-            # Crear archivo temporal
-            temp_pdf = tempfile.NamedTemporaryFile(delete=True, suffix=".pdf")
-            HTML(string=html_content).write_pdf(target=temp_pdf.name)
-            
-            temp_pdf.seek(0)
-
-            # Descargar PDF → luego se borrará automáticamente
-            return FileResponse(
-                temp_pdf,
-                as_attachment=True,
-                filename=f"Reporte_{sched.id}.pdf"
+            messages.success(
+                request,
+                f"✅ El reporte del edificio {building_name} fue finalizado correctamente."
             )
 
-            # (NO vuelve aquí porque FileResponse ya retorna)
+            # 🔁 Redirigir al listado de reportes
+            return redirect("listReports")
+        
 
-        # Si el form NO es válido
-        return render(request, "createReport.html", {
-            "schedule": sched,
-            "form": form,
-            "report": report,
-            "errors": form.errors,
-        })
+# Vista para descargar reporte
+@login_required
+def download_report_pdf(request, report_id):
 
+    report = get_object_or_404(Report, id=report_id)
+    sched = report.schedule
+    building = sched.tower.building
 
+    # ----------------------------
+    # SEGURIDAD POR ROL
+    # ----------------------------
+    if request.user.groups.filter(name="Técnico").exists():
+        if sched.technician != request.user:
+            return HttpResponse("No autorizado", status=403)
+
+    if request.user.groups.filter(name="Cliente").exists():
+        if sched.client != request.user:
+            return HttpResponse("No autorizado", status=403)
+
+    # ----------------------------
+    # GENERAR PDF TEMPORAL
+    # ----------------------------
+    html_content = render_to_string("report_pdf_template.html", {
+        "schedule": sched,
+        "report": report,
+        "building": building,
+        "technician": sched.technician,
+    })
+
+    temp_pdf = tempfile.NamedTemporaryFile(delete=True, suffix=".pdf")
+
+    HTML(
+        string=html_content,
+        base_url=request.build_absolute_uri('/')  # 🔥 CLAVE PARA FUENTES
+    ).write_pdf(target=temp_pdf.name)
+
+    temp_pdf.seek(0)
+
+    # ----------------------------
+    # DESCARGA
+    # ----------------------------
+    return FileResponse(
+        temp_pdf,
+        as_attachment=True,
+        filename=f"Reporte_{sched.id}.pdf"
+    )
 
 
 # Vista para listar los reportes
 @login_required
 def listReports(request):
 
+    # ----------------------------
+    # QUERYSET BASE
+    # ----------------------------
+    # Se priorizan primero los reportes "En producción"
+    # y luego se ordenan por fecha (más recientes primero)
     reports = Report.objects.select_related(
         "schedule",
         "schedule__tower",
         "schedule__tower__building",
         "schedule__tower__building__user"
-    ).order_by('-schedule__date')
+    ).annotate(
+        # Campo virtual para priorizar el estado
+        status_priority=Case(
+            When(schedule__status="in_production", then=0),  # 👈 Primero
+            default=1,                                      # 👈 El resto después
+            output_field=IntegerField(),
+        )
+    ).order_by(
+        "status_priority",        # 1️⃣ Orden por estado
+        "-schedule__date"         # 2️⃣ Orden por fecha
+    )
 
-    # Inicializar filtros
+    # ----------------------------
+    # FORMULARIO DE FILTROS
+    # ----------------------------
     form = ReportFilterForm(request.GET or None)
 
     if form.is_valid():
@@ -187,13 +224,16 @@ def listReports(request):
     # ----------------------------
     # FILTRO POR ROL DEL USUARIO
     # ----------------------------
+    # Administrador → ve todos
     if request.user.groups.filter(name="Administrador").exists():
-        pass  # ve todos
+        pass
 
+    # Técnico → solo sus reportes
     elif request.user.groups.filter(name="Técnico").exists():
         reports = reports.filter(schedule__technician=request.user)
 
-    else:  # Cliente
+    # Cliente → solo sus reportes
+    else:
         reports = reports.filter(schedule__client=request.user)
 
     # ----------------------------

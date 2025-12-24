@@ -14,11 +14,6 @@ from datetime import datetime, timedelta
 from django import forms
 
 
-
-
-
-
-
 # Crear opciones para seleccionar la torre del edificio seleccionado
 def tower_suggestions(request):
     building_id = request.GET.get("building_id")
@@ -47,24 +42,6 @@ def building_suggestions(request):
             {"id": cliente.buildings.id, "first_name": cliente.first_name}
             for cliente in clientes if hasattr(cliente, "buildings")
         ]
-
-    return JsonResponse(suggestions, safe=False)
-
-# Autocompletado de nombre del edificio
-def building_suggestionsS(request):
-    query = request.GET.get('q', '')  
-    suggestions = []
-
-    if query:
-        usuarios = User.objects.filter(
-            groups__name__in=['Cliente'],
-            first_name__icontains=query
-        ).distinct()[:5]
-
-        # DEVOLVER SOLO LISTA DE STRINGS (igual que en user_suggestions)
-        suggestions = list(
-            usuarios.values_list('first_name', flat=True)
-        )
 
     return JsonResponse(suggestions, safe=False)
 

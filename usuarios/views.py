@@ -32,7 +32,7 @@ def user_suggestions(request):
 
 
 # Index
-
+@login_required(login_url='login')
 def index(request):
 
     # Total de agendamientos

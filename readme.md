@@ -171,17 +171,21 @@ Hecho
 - Al crear, editar o eliminar un reporte, que la plataforma avise como lo hace con las torres
 - Hacer que no se pueda borrar un agendamiento si ya existe su reporte
 - En el listado de agendamientos, los agendamientos ya realizados no deben poder editarse, solo eliminarse 
+- Hacer que en los reportes, primero aparezcan los que estan en estado "En producción" y luego por fecha
 
 Pendiente:
-- revisar la parte de editar un reporte (ojo, reporte no agendamiento)
+- Revisar la parte de editar un reporte (ojo, reporte no agendamiento)
 
 Proximamente
-- En la pagina de inicio, mostrar cuantos agendamientos hay, cuantos se han hecho, cuantos estan en produccion y datos de ese estilo
+- Mejorar la plantilla del PDF
+- En la pagina de inicio, mostrar cuantos agendamientos hay, cuantos se han hecho, cuantos estan en produccion y datos de ese estilo (Para los administradores los datos globales y para los demas roles por unico)
 - Genera el PDF con la info (Basico)
 - Enviar
 - Falta añadir el campo de supuesta hora de entrada para los reportes, para comparar la hora en la que tenia que entrar con la hora en la que realemente entro el tecnico
-
 - Impedir que dos torres puedan tener el mismo nombre 
+- Bug en los reportes, cuando se empieza un dia y se termina otro, calcula mal el tiempo empleado.
+
+
 BORRAR
 BORRAR
 BORRAR

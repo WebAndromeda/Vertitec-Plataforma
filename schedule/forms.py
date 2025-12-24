@@ -93,7 +93,7 @@ class ScheduleForm(forms.ModelForm):
             'tower': forms.Select(attrs={'class': 'inputForm'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'inputForm'}),
             'hour': forms.TimeInput(attrs={'type': 'time', 'class': 'inputForm'}),
-            'status': forms.Select(attrs={'class': 'inputForm'}),  # CAMBIADO
+            'status': forms.Select(attrs={'class': 'inputForm'}),  
             'recurrence': forms.Select(attrs={'class': 'inputForm'}),
         }
 

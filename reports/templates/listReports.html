@@ -355,7 +355,13 @@
                                 </button>
                             </a>
                         {% else %} 
-                            <p class="infoTable">Finalizado</p>
+                            <!-- Ver PDF -->
+                            <a href="{% url 'download_report_pdf' report.id %}"> 
+                                <button class="botonCrear">
+                                    <i class="fa-solid fa-download"></i>
+                                    Ver PDF
+                                </button>
+                            </a>
                         {% endif %} 
                     </div>    
                 </div>

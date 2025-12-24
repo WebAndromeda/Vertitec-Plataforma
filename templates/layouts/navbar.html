@@ -31,7 +31,6 @@
                 {% url 'listPartsClient' as listPartsClient_url%}
                 {% url 'listReports' as listReports_url %}
     
-                <a class="nav-link textLink {% if request.path == index_url %}active{% endif %}" href="{% url 'index' %}">Inicio</a>
             </li>
 
             <!-- Si el usuario no ha ingresado -->
@@ -43,6 +42,8 @@
 
             <!-- Si el usuario ya ingreso -->
             {% if user.is_authenticated %}            
+                <a class="nav-link textLink {% if request.path == index_url %}active{% endif %}" href="{% url 'index' %}">Inicio</a>
+                
                 <!-- Si el usuario es administrador -->
                 {% if 'Administrador' in user_groups %}
                   <li class="nav-item">

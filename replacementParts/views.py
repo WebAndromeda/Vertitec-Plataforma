@@ -5,12 +5,13 @@ from .models import replacementParts
 from .forms import ReplacementPartsFilterForm, replacementPartsForm
 from django.contrib.auth.models import User
 from buildings.models import buildings, towers
-from utils.decorators import admin_required
+from utils.decorators import admin_required, roles_required
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 
-@login_required
+# Listado de respuestos si es metodo Get y creacion de repuesto si es metodo Post
+@roles_required("Administrador", "Cliente")
 def listParts(request):
 
     user = request.user
@@ -105,10 +106,10 @@ def listParts(request):
             nuevo.save()
 
             messages.success(
-                request, f"Repuesto '{nuevo.nameItem}' creado correctamente."
+                request, f"✅ Repuesto '{nuevo.nameItem}' creado correctamente."
             )
 
-            return redirect(f"{reverse('listPartsUnified')}?id={building_user.id}")
+            return redirect(f"{reverse('listParts')}?id={building_user.id}")
 
         else:
             print(form.errors)
